@@ -7,6 +7,8 @@ MoonWitness ORM is an independently evolving Rust data layer built around a modu
 
 The long-term direction takes inspiration from the extensibility model of systems such as Odoo: applications are assembled from focused modules that declare dependencies, contribute models and services, participate in lifecycle operations, and extend other modules through explicit contracts.
 
+MoonWitness ORM is intended to become a foundational data layer for **MW-BAAS**. MW-BAAS can build its backend services and domain capabilities on top of MoonWitness modules and add-ons, while MoonWitness remains independently usable by any Rust application. The ORM will not absorb BAAS-specific product logic; integration will happen through stable, explicit Rust contracts.
+
 MoonWitness is **not an ERP system** and does not aim to reproduce Odoo's business applications. It applies the modular-platform idea to Rust data engineering.
 
 > **Core first. Modules by contract. Add-ons without a tangled core.**
@@ -105,6 +107,14 @@ The manifest format is a proposal and may change before implementation.
 MoonWitness begins its independent evolution from the existing SeaORM 2.0 codebase in this repository. The current workspace includes the main ORM crate and companion crates for macros, code generation, and Arrow integration. The existing implementation uses Rust, SeaQuery, SQLx-related adapters, and other established Rust ecosystem components.
 
 The project will preserve useful upstream functionality while progressively developing its own module contracts, APIs, package identity, and tooling. The current source still contains upstream SeaORM package names and references; crate renaming and architectural extraction are planned work, not completed work.
+
+## Relationship with MW-BAAS
+
+MoonWitness ORM is the reusable relational and modular-extension foundation. MW-BAAS is a higher-level platform that may consume this foundation to compose backend capabilities. The intended boundary is deliberate:
+
+- **MoonWitness ORM:** database access, entity relations, module contracts, lifecycle coordination, and reusable data add-ons.
+- **MW-BAAS:** backend-as-a-service product capabilities, application-facing APIs, authentication and authorization services, tenant-facing workflows, and deployment experience.
+- **Integration rule:** BAAS-specific behavior belongs in MW-BAAS modules or dedicated add-ons, not in the ORM core. Cross-project contracts must be explicit, versioned, and independently testable.
 
 ## Current status
 
