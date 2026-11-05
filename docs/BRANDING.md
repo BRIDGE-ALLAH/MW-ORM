@@ -23,6 +23,10 @@ The MoonWitness architecture brings those parts together through a stable relati
 
 Avoid describing planned capabilities as shipped features.
 
+## Relationship to the MW-BAAS ecosystem
+
+MoonWitness is positioned as infrastructure beneath MW-BAAS, not as a competing application platform. Its brand should communicate a dependable, reusable foundation: MW-BAAS may be its flagship consumer, but the ORM remains independently valuable to the wider Rust ecosystem. Keep the boundary visible in product copy, crate dependencies, documentation, and release planning.
+
 ## Visual identity direction
 
 - Deep midnight navy: `#101827`
