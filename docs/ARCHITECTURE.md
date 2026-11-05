@@ -10,6 +10,10 @@ Its architectural inspiration is the module/add-on composition model found in pl
 
 MoonWitness is not an ERP suite. It provides data and module infrastructure so Rust applications can build their own domains.
 
+### System context: MW-BAAS
+
+MW-BAAS is a planned higher-level consumer of MoonWitness ORM. MoonWitness owns the reusable relational engine and generic module infrastructure; MW-BAAS owns BAAS product behavior and application-facing services. This separation keeps the ORM useful outside MW-BAAS and prevents product-specific concerns from leaking into the relational core. Integration should use versioned contracts and independently testable adapters.
+
 The platform is divided into three major planes:
 
 1. **ORM Core** — database and relational primitives.
