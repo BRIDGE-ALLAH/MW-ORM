@@ -132,7 +132,14 @@ Do not start with tenant isolation as the first add-on: it affects every query p
 
 **Exit criteria:** add-on has its own package, tests, documentation, compatibility declaration, and example host application.
 
-## Workstream G — Developer tooling
+## Workstream G — MW-BAAS integration boundary
+
+- Define the exact dependency direction: MW-BAAS consumes MoonWitness; MoonWitness must not depend on MW-BAAS.
+- Publish versioned contracts for module registration, lifecycle participation, migrations, and shared data capabilities.
+- Build a small reference integration that proves MW-BAAS can compose MoonWitness modules without coupling BAAS product logic into the ORM core.
+- Add compatibility tests across supported MoonWitness and MW-BAAS versions.
+
+## Workstream H — Developer tooling
 
 After kernel and module contract stabilize:
 - module graph inspection command;
