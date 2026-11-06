@@ -19,3 +19,6 @@ pub use host::{Module, ModuleContext, ModuleHost};
 pub use manifest::{ModuleDependency, ModuleManifest};
 pub use registry::{ModuleRegistry, ModuleRegistryBuilder};
 pub use resolver::ActivationPlan;
+
+#[cfg(test)]
+mod tests;
