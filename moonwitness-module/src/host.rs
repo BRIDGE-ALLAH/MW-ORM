@@ -16,7 +16,11 @@ pub struct ModuleContext {
 impl ModuleContext {
     /// Create a context from string key/value configuration.
     pub fn new(configuration: BTreeMap<String, String>) -> Self {
-        Self { configuration, services: ServiceRegistry::default(), extensions: ExtensionRegistry::default() }
+        Self {
+            configuration,
+            services: ServiceRegistry::default(),
+            extensions: ExtensionRegistry::default(),
+        }
     }
 
     /// Create a context with a prebuilt, immutable service registry.
@@ -115,14 +119,18 @@ impl ModuleHost {
     /// active and can be retried with `stop`.
     pub fn start(&mut self) -> Result<(), LifecycleError> {
         if !self.active.is_empty() {
-            return Err(LifecycleError::new("module host is already started or requires shutdown retry"));
+            return Err(LifecycleError::new(
+                "module host is already started or requires shutdown retry",
+            ));
         }
         let plan = self.registry.activation_plan().ordered_modules().to_vec();
         for name in &plan {
             let module = self.registry.modules.get(name)
                 .expect("registry plan only contains registered modules");
             module.prepare(&self.context)
-                .map_err(|error| LifecycleError::new(format!("module '{name}' failed to prepare: {error}")))?;
+                .map_err(|error| {
+                    LifecycleError::new(format!("module '{name}' failed to prepare: {error}"))
+                })?;
         }
         for name in plan {
             let module = self.registry.modules.get(&name)
