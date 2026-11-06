@@ -81,6 +81,8 @@ pub trait Module: Send + Sync {
     }
 
     /// Activate the module after all modules have prepared successfully.
+    /// If this returns an error, the host calls `deactivate` on this module
+    /// as best-effort cleanup before rolling back earlier activations.
     fn activate(&self, _context: &ModuleContext) -> Result<(), LifecycleError> {
         Ok(())
     }
