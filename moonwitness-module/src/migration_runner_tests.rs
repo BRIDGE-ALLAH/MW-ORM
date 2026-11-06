@@ -12,6 +12,8 @@ struct FakeBackend {
     executed: Mutex<Vec<String>>,
     namespaces: Mutex<Vec<String>>,
     fail_apply: bool,
+    fail_history: bool,
+    fail_release: bool,
 }
 
 #[async_trait::async_trait]
@@ -25,6 +27,9 @@ impl MigrationBackend for FakeBackend {
 
     async fn load_history(&self, namespace: &str) -> Result<Vec<AppliedMigration>, String> {
         self.namespaces.lock().unwrap().push(format!("history:{namespace}"));
+        if self.fail_history {
+            return Err("simulated history read failure".into());
+        }
         Ok(self.history.lock().unwrap().clone())
     }
 
@@ -48,6 +53,9 @@ impl MigrationBackend for FakeBackend {
     async fn release_lock(&self, namespace: &str) -> Result<(), String> {
         self.namespaces.lock().unwrap().push(format!("release:{namespace}"));
         *self.locked.lock().unwrap() = false;
+        if self.fail_release {
+            return Err("simulated lock release failure".into());
+        }
         Ok(())
     }
 }
@@ -88,4 +96,38 @@ async fn runner_releases_lock_after_migration_failure() {
     assert!(matches!(error, MigrationRunError::Apply { .. }));
     assert!(!*backend.locked.lock().unwrap());
     assert!(backend.history.lock().unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn runner_releases_lock_after_history_read_failure() {
+    let catalog = MigrationCatalog::default();
+    let backend = FakeBackend {
+        fail_history: true,
+        ..FakeBackend::default()
+    };
+
+    let error = MigrationRunner
+        .run("application", &[], &catalog, &backend)
+        .await
+        .unwrap_err();
+
+    assert!(matches!(error, MigrationRunError::HistoryRead(_)));
+    assert!(!*backend.locked.lock().unwrap());
+}
+
+#[tokio::test]
+async fn runner_reports_lock_release_failure_after_successful_migration_work() {
+    let catalog = MigrationCatalog::default();
+    let backend = FakeBackend {
+        fail_release: true,
+        ..FakeBackend::default()
+    };
+
+    let error = MigrationRunner
+        .run("application", &[], &catalog, &backend)
+        .await
+        .unwrap_err();
+
+    assert!(matches!(error, MigrationRunError::LockRelease(_)));
+    assert!(!*backend.locked.lock().unwrap());
 }
