@@ -73,7 +73,10 @@ fn migration_plan_is_namespaced_ordered_and_checksum_checked() {
 #[test]
 fn migration_catalog_rejects_checksum_drift_and_unknown_history() {
     let migration = MigrationDescriptor::new("mw.core", "base", 1, b"v1").unwrap();
-    let catalog = MigrationCatalog::new(vec![migration]).unwrap();
+    let catalog = MigrationCatalog::new(vec![migration.clone()]).unwrap();
+    assert_eq!(migration.source(), b"v1");
+    let wrong_version = AppliedMigration { module: "mw.core".into(), id: "base".into(), version: 2, checksum: migration.checksum.clone() };
+    assert!(matches!(catalog.plan(&[], &[wrong_version]), Err(MigrationError::VersionMismatch { .. })));
     let changed = AppliedMigration { module: "mw.core".into(), id: "base".into(), version: 1, checksum: "0".repeat(64) };
     assert!(matches!(catalog.plan(&[], &[changed]), Err(MigrationError::ChecksumMismatch { .. })));
     let missing = AppliedMigration { module: "mw.legacy".into(), id: "old".into(), version: 1, checksum: "0".repeat(64) };
