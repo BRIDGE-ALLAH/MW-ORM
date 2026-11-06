@@ -183,7 +183,7 @@ impl AsyncModuleHost {
                 .expect("active modules are registered");
             if let Err(error) = module.deactivate(&self.context).await {
                 return Err(LifecycleError::new(format!(
-                    "async module shutdown failed at '{name}': {error}; dependent modules remain active"
+                    "async module shutdown failed at '{name}': {error}; earlier modules remain active to preserve activation order"
                 )));
             }
             self.active.pop();
