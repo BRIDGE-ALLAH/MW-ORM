@@ -70,7 +70,9 @@ impl HookRegistry {
         }
         let handlers = self.hooks.entry(hook_name.clone()).or_default();
         if handlers.iter().any(|handler| handler.module == module && handler.id == id) {
-            return Err(LifecycleError::new(format!("duplicate handler '{module}:{id}' for hook '{hook_name}'")));
+            return Err(LifecycleError::new(format!(
+                "duplicate handler '{module}:{id}' for hook '{hook_name}'"
+            )));
         }
         handlers.push(Hook { module, id, priority, callback: Box::new(callback) });
         handlers.sort_by(|left, right| {
@@ -80,7 +82,11 @@ impl HookRegistry {
     }
 
     /// Dispatch a hook and return the number of handlers that completed.
-    pub fn dispatch(&self, hook_name: &str, context: &mut HookContext) -> Result<usize, LifecycleError> {
+    pub fn dispatch(
+        &self,
+        hook_name: &str,
+        context: &mut HookContext,
+    ) -> Result<usize, LifecycleError> {
         let Some(handlers) = self.hooks.get(hook_name) else { return Ok(0); };
         for (index, handler) in handlers.iter().enumerate() {
             (handler.callback)(context).map_err(|error| LifecycleError::new(format!(
