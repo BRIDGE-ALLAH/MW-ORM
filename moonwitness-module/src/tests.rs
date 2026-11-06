@@ -38,7 +38,7 @@ optional = false
 
 #[test]
 fn resolver_orders_dependencies_before_dependents() {
-    let mut core = manifest("mw.core", "1.2.0");
+    let core = manifest("mw.core", "1.2.0");
     let mut audit = manifest("mw.audit", "0.1.0");
     audit.dependencies.push(ModuleDependency {
         name: "mw.core".into(),
@@ -76,7 +76,7 @@ fn resolver_rejects_missing_required_dependency() {
 
 #[test]
 fn resolver_rejects_incompatible_dependency() {
-    let mut core = manifest("mw.core", "2.0.0");
+    let core = manifest("mw.core", "2.0.0");
     let mut audit = manifest("mw.audit", "0.1.0");
     audit.dependencies.push(ModuleDependency {
         name: "mw.core".into(),
@@ -155,7 +155,8 @@ fn host_activates_in_order_and_stops_in_reverse() {
 
     assert_eq!(
         *calls.lock().expect("test mutex"),
-        ["prepare:mw.core", "prepare:mw.audit", "activate:mw.core", "activate:mw.audit", "deactivate:mw.audit", "deactivate:mw.core"]
+        vec!["prepare:mw.core", "prepare:mw.audit", "activate:mw.core", "activate:mw.audit", "deactivate:mw.audit", "deactivate:mw.core"]
+            .into_iter().map(String::from).collect::<Vec<_>>()
     );
 }
 
@@ -178,7 +179,8 @@ fn host_rolls_back_activated_modules_when_activation_fails() {
     assert!(host.active_modules().is_empty());
     assert_eq!(
         *calls.lock().expect("test mutex"),
-        ["prepare:mw.core", "prepare:mw.fail", "activate:mw.core", "activate:mw.fail", "deactivate:mw.core"]
+        vec!["prepare:mw.core", "prepare:mw.fail", "activate:mw.core", "activate:mw.fail", "deactivate:mw.core"]
+            .into_iter().map(String::from).collect::<Vec<_>>()
     );
 }
 
