@@ -3,6 +3,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::KernelError;
 
+/// Semantic version of the module API implemented by this kernel.
+pub const MODULE_API_VERSION: &str = "1.0.0";
+
 /// A required or optional dependency on another module.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ModuleDependency {
@@ -39,7 +42,8 @@ impl ModuleManifest {
     /// Validate identifiers and reject duplicate or self-referential declarations.
     pub fn validate(&self) -> Result<(), KernelError> {
         validate_name(&self.name)?;
-        let supported_api = Version::new(1, 0, 0);
+        let supported_api = Version::parse(MODULE_API_VERSION)
+            .expect("the kernel module API version is a valid semver constant");
         if self.api_version.major != supported_api.major || self.api_version > supported_api {
             return Err(KernelError::UnsupportedApiVersion {
                 module: self.name.clone(),
