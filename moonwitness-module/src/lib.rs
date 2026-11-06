@@ -17,6 +17,7 @@ mod hooks;
 mod host;
 mod manifest;
 mod migration;
+mod migration_runner;
 mod registry;
 mod resolver;
 mod services;
@@ -31,6 +32,7 @@ pub use manifest::{ModuleDependency, ModuleManifest};
 pub use migration::{
     AppliedMigration, MigrationCatalog, MigrationDescriptor, MigrationError, MigrationPlan,
 };
+pub use migration_runner::{MigrationBackend, MigrationRunError, MigrationRunner};
 pub use registry::{ModuleRegistry, ModuleRegistryBuilder};
 pub use resolver::ActivationPlan;
 pub use services::{ServiceRegistry, ServiceRegistryBuilder};
@@ -43,3 +45,6 @@ mod extension_tests;
 
 #[cfg(test)]
 mod async_tests;
+
+#[cfg(test)]
+mod migration_runner_tests;
