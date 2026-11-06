@@ -26,7 +26,10 @@ pub(crate) fn resolve(
     let mut providers: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for (name, manifest) in manifests {
         for capability in &manifest.provides {
-            providers.entry(capability.clone()).or_default().push(name.clone());
+            providers
+                .entry(capability.clone())
+                .or_default()
+                .push(name.clone());
         }
     }
 
@@ -42,7 +45,10 @@ pub(crate) fn resolve(
                             found: found.version.to_string(),
                         });
                     }
-                    edges.get_mut(name).expect("registered node").insert(dependency.name.clone());
+                    edges
+                        .get_mut(name)
+                        .expect("registered node")
+                        .insert(dependency.name.clone());
                 }
                 None if dependency.optional => {}
                 None => {
@@ -69,7 +75,10 @@ pub(crate) fn resolve(
                 Some(found) => {
                     let provider = &found[0];
                     if provider != name {
-                        edges.get_mut(name).expect("registered node").insert(provider.clone());
+                        edges
+                            .get_mut(name)
+                            .expect("registered node")
+                            .insert(provider.clone());
                     }
                 }
             }
@@ -87,7 +96,10 @@ pub(crate) fn resolve(
         .collect();
     for (module, dependencies) in &edges {
         for dependency in dependencies {
-            dependents.get_mut(dependency).expect("registered node").insert(module.clone());
+            dependents
+                .get_mut(dependency)
+                .expect("registered node")
+                .insert(module.clone());
         }
     }
 
