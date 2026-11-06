@@ -71,7 +71,7 @@ impl ExtensionRegistryBuilder {
         let Some(owner) = self.current_module.as_deref() else {
             return Err(LifecycleError::new("migrations can only be registered during module contribution"));
         };
-        if migration.module != owner {
+        if migration.module.as_str() != owner {
             return Err(LifecycleError::new(format!(
                 "module '{owner}' cannot register migration owned by '{}'", migration.module
             )));
