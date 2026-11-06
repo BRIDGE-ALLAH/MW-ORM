@@ -11,6 +11,7 @@ on:
     paths:
       - "Cargo.toml"
       - "moonwitness-module/**"
+      - "moonwitness-addon-audit/**"
       - ".github/workflows/moonwitness-module.yml"
 
 jobs:
