@@ -126,11 +126,11 @@ MoonWitness ORM is the reusable relational and modular-extension foundation. MW-
 - [ ] Repository-wide upstream and license audit
 - [ ] Baseline CI and compatibility inventory
 - [x] Initial module manifest, registry, dependency resolver, and lifecycle prototype (`moonwitness-module`)
-- [x] Hook, event, service, and migration-planning contracts in the experimental kernel\n- [ ] Async lifecycle, database migration execution, and ORM integration
+- [x] Hook, event, service, and migration-planning contracts in the experimental kernel\n- [x] Synchronous and async lifecycle plus unified typed extension contributions\n- [ ] Database migration execution and ORM integration
 - [ ] First reference add-on
 - [ ] MoonWitness crate namespace transition
 
-The `moonwitness-module` crate is an experimental first kernel implementation with unit tests for manifest parsing, dependency ordering, compatibility, cycle detection, and lifecycle rollback. It is not yet a production-ready module platform; database migration execution, async lifecycle, integrated module contribution registry, ORM integration, security review, and end-to-end CI remain open.
+The `moonwitness-module` crate is an experimental first kernel implementation with unit tests for manifest parsing, dependency ordering, compatibility, cycle detection, and lifecycle rollback. It is not yet a production-ready module platform; database migration execution, database migration execution, integrated ORM migration adapter, ORM integration, security review, and end-to-end CI remain open.
 
 ## Roadmap
 
