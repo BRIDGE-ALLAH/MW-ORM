@@ -1,7 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use semver::Version;
-
 use crate::{KernelError, ModuleManifest};
 
 /// A deterministic, dependency-first order in which modules may be activated.
@@ -122,9 +120,4 @@ pub(crate) fn resolve(
     }
 
     Ok(ActivationPlan { ordered })
-}
-
-/// Check whether a module version satisfies a semantic-version requirement.
-pub fn version_matches(version: &Version, requirement: &semver::VersionReq) -> bool {
-    requirement.matches(version)
 }
