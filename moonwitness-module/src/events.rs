@@ -2,7 +2,8 @@ use std::{any::{Any, TypeId}, collections::HashMap, sync::Arc};
 
 use crate::LifecycleError;
 
-type EventCallback = Arc<dyn Fn(&(dyn Any + Send + Sync)) -> Result<(), LifecycleError> + Send + Sync>;
+type EventCallback =
+    Arc<dyn Fn(&(dyn Any + Send + Sync)) -> Result<(), LifecycleError> + Send + Sync>;
 
 struct Handler {
     module: String,
