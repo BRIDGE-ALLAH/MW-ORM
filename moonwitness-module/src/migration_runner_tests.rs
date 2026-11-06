@@ -32,6 +32,7 @@ impl MigrationBackend for FakeBackend {
         self.history.lock().unwrap().push(AppliedMigration {
             module: migration.module.clone(),
             id: migration.id.clone(),
+            version: migration.version,
             checksum: migration.checksum.clone(),
         });
         Ok(())
