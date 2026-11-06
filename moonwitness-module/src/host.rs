@@ -138,6 +138,10 @@ impl ModuleHost {
             if let Err(error) = module.activate(&self.context) {
                 let mut failed_modules = Vec::new();
                 let mut failures = Vec::new();
+                if let Err(rollback_error) = module.deactivate(&self.context) {
+                    failed_modules.push(name.clone());
+                    failures.push(format!("{name}: {rollback_error}"));
+                }
                 for active_name in self.active.iter().rev() {
                     if let Some(active_module) = self.registry.modules.get(active_name) {
                         if let Err(rollback_error) = active_module.deactivate(&self.context) {
