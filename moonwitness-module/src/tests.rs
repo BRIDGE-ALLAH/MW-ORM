@@ -184,6 +184,47 @@ fn host_rolls_back_activated_modules_when_activation_fails() {
     );
 }
 
+#[test]
+fn resolver_orders_required_capability_provider_first() {
+    let mut audit = manifest("mw.audit", "0.1.0");
+    audit.requires_capabilities.push("audit.events".into());
+    let mut events = manifest("mw.events", "1.0.0");
+    events.provides.push("audit.events".into());
+
+    let mut builder = ModuleRegistryBuilder::new();
+    builder.register(TestModule::new(audit)).expect("register audit");
+    builder.register(TestModule::new(events)).expect("register events");
+    let registry = builder.build().expect("capability should resolve");
+
+    assert_eq!(
+        registry.activation_plan().ordered_modules(),
+        &["mw.events".to_owned(), "mw.audit".to_owned()]
+    );
+}
+
+#[test]
+fn resolver_rejects_missing_capability() {
+    let mut audit = manifest("mw.audit", "0.1.0");
+    audit.requires_capabilities.push("audit.events".into());
+    let mut builder = ModuleRegistryBuilder::new();
+    builder.register(TestModule::new(audit)).expect("register audit");
+
+    assert!(matches!(
+        builder.build(),
+        Err(KernelError::MissingCapability { .. })
+    ));
+}
+
+#[test]
+fn registry_rejects_duplicate_module_identifiers() {
+    let mut builder = ModuleRegistryBuilder::new();
+    builder.register(TestModule::new(manifest("mw.audit", "0.1.0"))).expect("first registration");
+    assert!(matches!(
+        builder.register(TestModule::new(manifest("mw.audit", "0.2.0"))),
+        Err(KernelError::DuplicateModule(_))
+    ));
+}
+
 struct TestModule {
     manifest: ModuleManifest,
     calls: Arc<Mutex<Vec<String>>>,
