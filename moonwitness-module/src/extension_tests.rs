@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     AppliedMigration, EventBus, HookContext, HookRegistry, MigrationCatalog,
-    MigrationDescriptor, MigrationError, ServiceRegistryBuilder,
+    MigrationDescriptor, MigrationError, ModuleContext, ServiceRegistryBuilder,
 };
 
 #[test]
@@ -75,4 +75,15 @@ fn migration_catalog_rejects_checksum_drift_and_unknown_history() {
     assert!(matches!(catalog.plan(&[], &[changed]), Err(MigrationError::ChecksumMismatch { .. })));
     let missing = AppliedMigration { module: "mw.legacy".into(), id: "old".into(), checksum: "0".repeat(64) };
     assert!(matches!(catalog.plan(&[], &[missing]), Err(MigrationError::UnknownApplied { .. })));
+}
+
+#[test]
+fn module_context_exposes_registered_services() {
+    let mut builder = ServiceRegistryBuilder::new();
+    builder.register(42_u64).unwrap();
+    let context = ModuleContext::with_services(
+        std::collections::BTreeMap::new(),
+        builder.build(),
+    );
+    assert_eq!(*context.service::<u64>().unwrap(), 42);
 }
