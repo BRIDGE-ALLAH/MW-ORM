@@ -43,7 +43,7 @@ The standalone ORM remains independently usable. The root ORM crate now offers a
 
 ## Workstream C — Module kernel MVP
 
-**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, capability provider resolution, deterministic activation plans, a static registry, synchronous lifecycle, typed service lookup, ordered hooks, typed in-process events, and SHA-256 migration descriptors with checksum-validated planning. It is a prototype, not a stable public API. Database migration execution and ORM-specific adapters are still not implemented. Both synchronous and asynchronous lifecycle hosts now collect module contributions into a single immutable extension registry.
+**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, kernel API compatibility validation, capability provider resolution, deterministic activation plans, a static registry, synchronous and asynchronous lifecycle, typed service lookup, owner-validated ordered hooks and typed in-process events, and versioned SHA-256 migration descriptors retaining source bytes with checksum-validated planning. It is a prototype, not a stable public API. Database migration execution and ORM-specific adapters are still not implemented. Both synchronous and asynchronous lifecycle hosts now collect module contributions into a single immutable extension registry.
 
 Build the first kernel as an optional crate, tentatively `moonwitness-module`.
 
