@@ -51,7 +51,10 @@ impl ModuleManifest {
             if !dependencies.insert(&dependency.name) {
                 return Err(KernelError::InvalidManifest {
                     module: self.name.clone(),
-                    reason: format!("dependency '{}' is declared more than once", dependency.name),
+                    reason: format!(
+                        "dependency '{}' is declared more than once",
+                        dependency.name
+                    ),
                 });
             }
         }
