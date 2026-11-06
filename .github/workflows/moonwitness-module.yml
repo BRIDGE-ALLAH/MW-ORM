@@ -23,6 +23,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Run module kernel tests
         run: cargo test -p moonwitness-module
+      - name: Check ORM module-runtime feature integration
+        run: cargo check -p sea-orm --features module-runtime
       - name: Run audit add-on tests
         run: cargo test -p moonwitness-addon-audit
       - name: Check module kernel documentation
