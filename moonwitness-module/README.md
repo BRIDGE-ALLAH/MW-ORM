@@ -8,9 +8,9 @@ module composition for Rust applications.
 - TOML module manifests with semantic versions and dependency declarations.
 - Required and optional module dependency validation.
 - Capability provider validation and deterministic dependency-first planning.
-- A static module registry and synchronous prepare/activate/deactivate lifecycle.
+- Static synchronous and asynchronous module registries with prepare/activate/deactivate lifecycle.
 - Best-effort activation rollback and reverse-order shutdown.
-- Typed, immutable service registry.
+- Module contribution phase that freezes services, hooks, and event subscribers into one immutable extension registry.\n- Typed, immutable service registry.
 - Deterministically ordered named hooks with fail-fast dispatch.
 - Typed in-process events with deterministic subscriber order.
 - Module-scoped migration descriptors, SHA-256 checksums, history validation,
@@ -63,7 +63,7 @@ runner. Destructive rollback is never implied.
 
 ## Current limitations
 
-- The lifecycle host is synchronous.
+- Synchronous and async lifecycle hosts are available; both use static Rust module values.
 - Module preparation and activation are not connected to a database transaction.
 - Migration support is planning and integrity metadata only, not execution.
 - Hooks and events are standalone registries; modules do not yet contribute to
