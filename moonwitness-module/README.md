@@ -73,4 +73,4 @@ runner. Destructive rollback is never implied.
   production security certification.
 - The kernel is experimental and its public API may change.
 
-The standalone ORM remains independent of this optional crate.
+The standalone ORM remains independent by default. Enable the root package's optional `module-runtime` feature to access this crate as `sea_orm::modules`.
