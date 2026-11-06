@@ -146,21 +146,21 @@ impl AsyncModuleHost {
             let module = self.registry.modules.get(&name)
                 .expect("registry plan only contains registered modules");
             if let Err(error) = module.activate(&self.context).await {
-                let mut failed_modules = Vec::new();
                 let mut failures = Vec::new();
                 if let Err(rollback_error) = module.deactivate(&self.context).await {
-                    failed_modules.push(name.clone());
+                    self.active.push(name.clone());
                     failures.push(format!("{name}: {rollback_error}"));
-                }
-                for active_name in self.active.iter().rev() {
-                    if let Some(active_module) = self.registry.modules.get(active_name) {
+                } else {
+                    while let Some(active_name) = self.active.last().cloned() {
+                        let active_module = self.registry.modules.get(&active_name)
+                            .expect("active modules are registered");
                         if let Err(rollback_error) = active_module.deactivate(&self.context).await {
-                            failed_modules.push(active_name.clone());
                             failures.push(format!("{active_name}: {rollback_error}"));
+                            break;
                         }
+                        self.active.pop();
                     }
                 }
-                self.active = failed_modules.into_iter().rev().collect();
                 let suffix = if failures.is_empty() {
                     String::new()
                 } else {
@@ -177,23 +177,16 @@ impl AsyncModuleHost {
 
     /// Deactivate modules in reverse activation order, retaining failures for retry.
     pub async fn stop(&mut self) -> Result<(), LifecycleError> {
-        let mut failed = Vec::new();
-        for name in self.active.iter().rev() {
-            if let Some(module) = self.registry.modules.get(name) {
-                if let Err(error) = module.deactivate(&self.context).await {
-                    failed.push((name.clone(), error.to_string()));
-                }
+        while let Some(name) = self.active.last().cloned() {
+            let module = self.registry.modules.get(&name)
+                .expect("active modules are registered");
+            if let Err(error) = module.deactivate(&self.context).await {
+                return Err(LifecycleError::new(format!(
+                    "async module shutdown failed at '{name}': {error}; dependent modules remain active"
+                )));
             }
+            self.active.pop();
         }
-        self.active = failed.iter().map(|(name, _)| name.clone()).rev().collect();
-        if failed.is_empty() {
-            Ok(())
-        } else {
-            let details = failed.into_iter()
-                .map(|(name, error)| format!("{name}: {error}"))
-                .collect::<Vec<_>>()
-                .join(", ");
-            Err(LifecycleError::new(format!("async module shutdown failures: {details}")))
-        }
+        Ok(())
     }
 }
