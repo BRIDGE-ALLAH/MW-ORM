@@ -741,3 +741,7 @@ pub use sea_orm_arrow::arrow;
 
 #[cfg(feature = "sqlx-dep")]
 pub use sqlx;
+
+/// Optional typed module runtime, enabled with the `module-runtime` feature.
+#[cfg(feature = "module-runtime")]
+pub use moonwitness_module as modules;
