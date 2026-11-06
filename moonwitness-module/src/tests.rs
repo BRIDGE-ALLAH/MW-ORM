@@ -1,4 +1,10 @@
-use std::{collections::BTreeMap, sync::{Arc, Mutex}};
+use std::{
+    collections::BTreeMap,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
+};
 
 use semver::{Version, VersionReq};
 
@@ -229,6 +235,7 @@ struct TestModule {
     manifest: ModuleManifest,
     calls: Arc<Mutex<Vec<String>>>,
     fail_activation: bool,
+    fail_deactivation_once: Arc<AtomicBool>,
 }
 
 impl TestModule {
@@ -237,6 +244,7 @@ impl TestModule {
             manifest,
             calls: Arc::new(Mutex::new(Vec::new())),
             fail_activation: false,
+            fail_deactivation_once: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -266,6 +274,29 @@ impl Module for TestModule {
 
     fn deactivate(&self, _context: &ModuleContext) -> Result<(), LifecycleError> {
         self.record("deactivate");
-        Ok(())
+        if self.fail_deactivation_once.swap(false, Ordering::SeqCst) {
+            Err(LifecycleError::new("intentional one-shot cleanup failure"))
+        } else {
+            Ok(())
+        }
     }
+}
+
+
+#[test]
+fn host_retains_modules_when_shutdown_fails_and_allows_retry() {
+    let mut core = TestModule::new(manifest("mw.core", "1.0.0"));
+    core.fail_deactivation_once.store(true, Ordering::SeqCst);
+
+    let mut builder = ModuleRegistryBuilder::new();
+    builder.register(core).expect("register core");
+    let registry = builder.build().expect("build registry");
+    let mut host = ModuleHost::new(registry, ModuleContext::default());
+
+    host.start().expect("start host");
+    assert!(host.stop().is_err());
+    assert_eq!(host.active_modules(), &["mw.core".to_owned()]);
+
+    host.stop().expect("retry shutdown");
+    assert!(host.active_modules().is_empty());
 }
