@@ -57,11 +57,16 @@ impl ModuleRegistryBuilder {
 
     /// Validate all module contracts and freeze the registry.
     pub fn build(self) -> Result<ModuleRegistry, KernelError> {
-        let manifests: BTreeMap<String, ModuleManifest> = self.modules
+        let manifests: BTreeMap<String, ModuleManifest> = self
+            .modules
             .iter()
             .map(|(name, module)| (name.clone(), module.manifest().clone()))
             .collect();
         let plan = resolver::resolve(&manifests)?;
-        Ok(ModuleRegistry { modules: self.modules, manifests, plan })
+        Ok(ModuleRegistry {
+            modules: self.modules,
+            manifests,
+            plan,
+        })
     }
 }

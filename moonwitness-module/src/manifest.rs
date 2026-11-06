@@ -51,12 +51,19 @@ impl ModuleManifest {
             if !dependencies.insert(&dependency.name) {
                 return Err(KernelError::InvalidManifest {
                     module: self.name.clone(),
-                    reason: format!("dependency '{}' is declared more than once", dependency.name),
+                    reason: format!(
+                        "dependency '{}' is declared more than once",
+                        dependency.name
+                    ),
                 });
             }
         }
         validate_unique_names(&self.name, "provided capability", &self.provides)?;
-        validate_unique_names(&self.name, "required capability", &self.requires_capabilities)?;
+        validate_unique_names(
+            &self.name,
+            "required capability",
+            &self.requires_capabilities,
+        )?;
         Ok(())
     }
 
@@ -75,7 +82,12 @@ fn validate_name(name: &str) -> Result<(), KernelError> {
         && name.split('.').all(|part| {
             !part.is_empty()
                 && part.as_bytes()[0].is_ascii_lowercase()
-                && part.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_')
+                && part.bytes().all(|byte| {
+                    byte.is_ascii_lowercase()
+                        || byte.is_ascii_digit()
+                        || byte == b'-'
+                        || byte == b'_'
+                })
         });
     if valid {
         Ok(())

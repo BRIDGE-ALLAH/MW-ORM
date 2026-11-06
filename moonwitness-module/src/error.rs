@@ -11,16 +11,30 @@ pub enum KernelError {
     DuplicateModule(String),
     /// A module manifest contains inconsistent declarations.
     #[error("invalid manifest for module '{module}': {reason}")]
-    InvalidManifest { module: String, reason: String },
+    InvalidManifest {
+        /// Identifier of the module with the invalid manifest.
+        module: String,
+        /// Explanation of the manifest validation failure.
+        reason: String,
+    },
     /// A required module is not registered.
     #[error("module '{module}' requires missing module '{dependency}'")]
-    MissingDependency { module: String, dependency: String },
+    MissingDependency {
+        /// Identifier of the module declaring the dependency.
+        module: String,
+        /// Identifier of the required module that is not registered.
+        dependency: String,
+    },
     /// A dependency's version does not satisfy the declared requirement.
     #[error("module '{module}' requires '{dependency}' {required}, but found {found}")]
     IncompatibleDependency {
+        /// Identifier of the module declaring the dependency.
         module: String,
+        /// Identifier of the dependency whose version did not match.
         dependency: String,
+        /// Version requirement declared by the dependent module.
         required: String,
+        /// Version actually provided by the registered dependency.
         found: String,
     },
     /// The module dependency graph contains a cycle.
@@ -28,10 +42,20 @@ pub enum KernelError {
     DependencyCycle(String),
     /// No module provides a required capability.
     #[error("module '{module}' requires capability '{capability}', but no provider is registered")]
-    MissingCapability { module: String, capability: String },
+    MissingCapability {
+        /// Identifier of the module requiring the capability.
+        module: String,
+        /// Capability for which no provider was registered.
+        capability: String,
+    },
     /// More than one module provides a capability that must be unique.
     #[error("capability '{capability}' has multiple providers: {providers}")]
-    AmbiguousCapability { capability: String, providers: String },
+    AmbiguousCapability {
+        /// Capability requested by a module.
+        capability: String,
+        /// Comma-separated identifiers of the conflicting providers.
+        providers: String,
+    },
     /// A manifest document could not be decoded.
     #[error("could not parse module manifest: {0}")]
     ManifestParse(String),
@@ -51,6 +75,8 @@ pub struct LifecycleError {
 impl LifecycleError {
     /// Create a lifecycle error with a human-readable message.
     pub fn new(message: impl Into<String>) -> Self {
-        Self { message: message.into() }
+        Self {
+            message: message.into(),
+        }
     }
 }
