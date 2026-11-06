@@ -93,7 +93,7 @@ impl AsyncModuleRegistryBuilder {
         Ok(AsyncModuleRegistry {
             modules: self.modules,
             plan,
-            extensions: contributions.build(),
+            extensions: contributions.build().map_err(KernelError::Lifecycle)?,
         })
     }
 }
