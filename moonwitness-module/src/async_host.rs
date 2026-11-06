@@ -2,13 +2,21 @@ use std::collections::BTreeMap;
 
 use async_trait::async_trait;
 
-use crate::{\n    ActivationPlan, ExtensionRegistry, ExtensionRegistryBuilder, KernelError, LifecycleError,\n    ModuleContext, ModuleManifest, resolver,\n};
+use crate::{
+    ActivationPlan, ExtensionRegistry, ExtensionRegistryBuilder, KernelError, LifecycleError,
+    ModuleContext, ModuleManifest, resolver,
+};
 
 /// An asynchronously initialized, statically linked module.
 #[async_trait]
 pub trait AsyncModule: Send + Sync {
     /// Return the module's immutable descriptor.
     fn manifest(&self) -> &ModuleManifest;
+
+    /// Register services, hooks, and event subscribers before the registry is frozen.
+    fn contribute(&self, _extensions: &mut ExtensionRegistryBuilder) -> Result<(), LifecycleError> {
+        Ok(())
+    }
 
     /// Validate readiness without performing irreversible side effects.
     async fn prepare(&self, _context: &ModuleContext) -> Result<(), LifecycleError> {
@@ -30,11 +38,15 @@ pub trait AsyncModule: Send + Sync {
 pub struct AsyncModuleRegistry {
     modules: BTreeMap<String, Box<dyn AsyncModule>>,
     plan: ActivationPlan,
+    pub(crate) extensions: ExtensionRegistry,
 }
 
 impl AsyncModuleRegistry {
     /// Return the deterministic dependency-first activation plan.
     pub fn activation_plan(&self) -> &ActivationPlan { &self.plan }
+
+    /// Return the immutable contributions registered by all modules.
+    pub fn extensions(&self) -> &ExtensionRegistry { &self.extensions }
 
     /// Return the number of registered modules.
     pub fn len(&self) -> usize { self.modules.len() }
@@ -65,14 +77,24 @@ impl AsyncModuleRegistryBuilder {
         Ok(self)
     }
 
-    /// Validate manifests and freeze the asynchronous registry.
+    /// Validate manifests, collect contributions, and freeze the registry.
     pub fn build(self) -> Result<AsyncModuleRegistry, KernelError> {
         let manifests: BTreeMap<String, ModuleManifest> = self.modules
             .iter()
             .map(|(name, module)| (name.clone(), module.manifest().clone()))
             .collect();
         let plan = resolver::resolve(&manifests)?;
-        Ok(AsyncModuleRegistry { modules: self.modules, plan })
+        let mut contributions = ExtensionRegistryBuilder::new();
+        for name in plan.ordered_modules() {
+            self.modules.get(name)
+                .expect("registry plan only contains registered modules")
+                .contribute(&mut contributions)?;
+        }
+        Ok(AsyncModuleRegistry {
+            modules: self.modules,
+            plan,
+            extensions: contributions.build(),
+        })
     }
 }
 
@@ -84,9 +106,11 @@ pub struct AsyncModuleHost {
 }
 
 impl AsyncModuleHost {
-    /// Create a host for a validated asynchronous registry.
+    /// Create a host and attach the registry's immutable contributions to its context.
     pub fn new(registry: AsyncModuleRegistry, context: ModuleContext) -> Self {
-        let mut context = context;\n        context.extensions = registry.extensions.clone();\n        Self { registry, context, active: Vec::new() }
+        let mut context = context;
+        context.extensions = registry.extensions.clone();
+        Self { registry, context, active: Vec::new() }
     }
 
     /// Return modules currently considered active by the host.
