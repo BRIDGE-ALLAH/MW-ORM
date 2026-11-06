@@ -129,7 +129,8 @@ MoonWitness ORM is the reusable relational and modular-extension foundation. MW-
 - [x] Hook, event, service, and migration-planning contracts in the experimental kernel
 - [x] Synchronous and async lifecycle plus unified typed extension contributions
 - [x] Generic migration coordinator contract and resumable ordered runner
-- [x] Optional `module-runtime` feature re-exported as `sea_orm::modules`\n- [ ] Database-specific migration backend and automatic ORM write integration
+- [x] Optional `module-runtime` feature re-exported as `sea_orm::modules`
+- [ ] Database-specific migration backend and automatic ORM write integration
 - [x] In-memory audit reference add-on (`moonwitness-addon-audit`); persistence and ORM write integration remain open
 - [ ] MoonWitness crate namespace transition
 
