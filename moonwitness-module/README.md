@@ -12,7 +12,8 @@ The first MoonWitness module-kernel crate. It is a small, statically linked modu
 - Deterministic dependency-first activation plans.
 - A static Rust `Module` contract and immutable registry.
 - Prepare/activate/deactivate lifecycle hooks.
-- Reverse-order shutdown and best-effort rollback after activation failure.
+- Reverse-order shutdown and rollback after activation failure, including cleanup of a partially activated module.
+- Failed cleanup remains visible in the host's active set and can be retried with a later shutdown call.
 
 ## Example manifest
 
