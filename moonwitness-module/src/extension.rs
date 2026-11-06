@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use crate::{
-    EventBus, HookContext, HookRegistry, LifecycleError, ServiceRegistry,
+    AppliedMigration, EventBus, HookContext, HookRegistry, LifecycleError,
+    MigrationCatalog, MigrationDescriptor, MigrationError, ServiceRegistry,
     ServiceRegistryBuilder,
 };
 
-/// Mutable collector for typed services, named hooks, and typed events.
+/// Mutable collector for typed services, named hooks, typed events, and migrations.
 ///
 /// Modules contribute to this builder during registry construction. Once the
 /// registry is built, the resulting extension set is immutable.
@@ -14,6 +15,7 @@ pub struct ExtensionRegistryBuilder {
     services: ServiceRegistryBuilder,
     hooks: HookRegistry,
     events: EventBus,
+    migrations: Vec<MigrationDescriptor>,
 }
 
 impl ExtensionRegistryBuilder {
@@ -60,13 +62,25 @@ impl ExtensionRegistryBuilder {
         Ok(self)
     }
 
+    /// Register a module-owned migration descriptor.
+    pub fn register_migration(
+        &mut self,
+        migration: MigrationDescriptor,
+    ) -> &mut Self {
+        self.migrations.push(migration);
+        self
+    }
+
     /// Freeze all contributions into an immutable extension registry.
-    pub fn build(self) -> ExtensionRegistry {
-        ExtensionRegistry {
+    pub fn build(self) -> Result<ExtensionRegistry, LifecycleError> {
+        let migrations = MigrationCatalog::new(self.migrations)
+            .map_err(|error: MigrationError| LifecycleError::new(error.to_string()))?;
+        Ok(ExtensionRegistry {
             services: self.services.build(),
             hooks: Arc::new(self.hooks),
             events: Arc::new(self.events),
-        }
+            migrations,
+        })
     }
 }
 
@@ -76,12 +90,14 @@ pub struct ExtensionRegistry {
     services: ServiceRegistry,
     hooks: Arc<HookRegistry>,
     events: Arc<EventBus>,
+    migrations: MigrationCatalog,
 }
 
 impl std::fmt::Debug for ExtensionRegistry {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter.debug_struct("ExtensionRegistry")
             .field("service_count", &self.services.len())
+            .field("migration_count", &self.migrations.migrations().len())
             .finish_non_exhaustive()
     }
 }
@@ -89,7 +105,12 @@ impl std::fmt::Debug for ExtensionRegistry {
 impl ExtensionRegistry {
     /// Create an extension registry containing only the supplied services.
     pub fn from_services(services: ServiceRegistry) -> Self {
-        Self { services, hooks: Arc::default(), events: Arc::default() }
+        Self {
+            services,
+            hooks: Arc::default(),
+            events: Arc::default(),
+            migrations: MigrationCatalog::default(),
+        }
     }
 
     /// Resolve a shared service by concrete Rust type.
@@ -117,6 +138,11 @@ impl ExtensionRegistry {
         self.events.publish(event)
     }
 
-    /// Return the number of services in this registry.
+    /// Return the immutable migration catalog contributed by registered modules.
+    pub fn migrations(&self) -> &MigrationCatalog { &self.migrations }
+
+    /// Return a snapshot of applied migration metadata in the supplied history.
+    ///
+    /// This helper is intentionally absent; history is owned by the database backend.
     pub fn service_count(&self) -> usize { self.services.len() }
 }
