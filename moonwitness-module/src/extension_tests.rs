@@ -4,7 +4,8 @@ use semver::Version;
 
 use crate::{
     AppliedMigration, EventBus, HookContext, HookRegistry, MigrationCatalog,
-    ExtensionRegistryBuilder, KernelError, LifecycleError, MigrationDescriptor, MigrationError, Module,
+    ExtensionRegistryBuilder, KernelError, LifecycleError, MigrationDescriptor, MigrationError,
+    Module,
     ModuleContext, ModuleHost, ModuleManifest, ModuleRegistryBuilder, ServiceRegistryBuilder,
 };
 
@@ -12,7 +13,11 @@ use crate::{
 fn hooks_run_in_priority_then_identity_order() {
     let calls = Arc::new(Mutex::new(Vec::new()));
     let mut hooks = HookRegistry::new();
-    for (module, id, priority) in [("mw.z", "late", 10), ("mw.a", "second", 0), ("mw.a", "first", 0)] {
+    for (module, id, priority) in [
+        ("mw.z", "late", 10),
+        ("mw.a", "second", 0),
+        ("mw.a", "first", 0),
+    ] {
         let calls = Arc::clone(&calls);
         hooks.register("entity.before_save", module, id, priority, move |_| {
             calls.lock().unwrap().push(format!("{module}:{id}"));
@@ -60,7 +65,13 @@ fn services_resolve_by_concrete_type() {
 #[test]
 fn migration_plan_is_namespaced_ordered_and_checksum_checked() {
     let core = MigrationDescriptor::new("mw.core", "create_base", 1, b"CREATE TABLE base").unwrap();
-    let audit = MigrationDescriptor::new("mw.audit", "create_log", 1, b"CREATE TABLE audit").unwrap();
+    let audit = MigrationDescriptor::new(
+        "mw.audit",
+        "create_log",
+        1,
+        b"CREATE TABLE audit",
+    )
+    .unwrap();
     let catalog = MigrationCatalog::new(vec![audit.clone(), core.clone()]).unwrap();
     let plan = catalog.plan(&["mw.core".into(), "mw.audit".into()], &[]).unwrap();
     assert_eq!(plan.pending().iter().map(|m| m.module.as_str()).collect::<Vec<_>>(),
@@ -128,7 +139,12 @@ impl Module for ContributingModule {
 
     fn contribute(&self, extensions: &mut ExtensionRegistryBuilder) -> Result<(), LifecycleError> {
         extensions.register_service(String::from("registered-before-start"))?;
-        let migration = MigrationDescriptor::new("mw.contrib", "create_audit", 1, b"CREATE TABLE audit")
+        let migration = MigrationDescriptor::new(
+            "mw.contrib",
+            "create_audit",
+            1,
+            b"CREATE TABLE audit",
+        )
             .map_err(|error| LifecycleError::new(error.to_string()))?;
         extensions.register_migration(migration)?;
         extensions.register_hook("test.before", "mw.contrib", "mark", 0, |context| {
