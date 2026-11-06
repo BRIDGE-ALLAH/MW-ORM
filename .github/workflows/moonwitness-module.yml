@@ -19,8 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
       - name: Run module kernel tests
         run: cargo test -p moonwitness-module
       - name: Check module kernel documentation
