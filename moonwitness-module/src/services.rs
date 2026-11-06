@@ -39,6 +39,14 @@ pub struct ServiceRegistry {
     services: HashMap<TypeId, Arc<dyn Any + Send + Sync>>,
 }
 
+impl std::fmt::Debug for ServiceRegistry {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.debug_struct("ServiceRegistry")
+            .field("service_count", &self.services.len())
+            .finish()
+    }
+}
+
 impl ServiceRegistry {
     /// Resolve a shared service by its concrete Rust type.
     pub fn get<T>(&self) -> Option<Arc<T>>
