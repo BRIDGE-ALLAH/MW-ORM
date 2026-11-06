@@ -2,6 +2,10 @@
 
 > Status: proposed target architecture. This document is a design contract for staged implementation, not a description of already-shipped features.
 
+## Implementation status
+
+The first experimental `moonwitness-module` crate now provides TOML-backed typed manifests, a static module registry, deterministic dependency/capability resolution, and synchronous prepare/activate/deactivate lifecycle handling with best-effort rollback. Migration coordination, extension registries, async lifecycle, ORM integration, and production hardening remain unimplemented. See [the crate README](../moonwitness-module/README.md).
+
 ## 1. Product definition
 
 MoonWitness is a **modular relational engine and ORM platform for Rust**.

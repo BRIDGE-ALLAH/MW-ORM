@@ -118,19 +118,19 @@ MoonWitness ORM is the reusable relational and modular-extension foundation. MW-
 
 ## Current status
 
-**Independent evolution / architecture definition.**
+**Independent evolution / early implementation.**
 
 - [x] Direction selected: Independent Evolution
 - [x] Modular platform architecture proposed
 - [x] Core, module runtime, and add-on boundaries documented
 - [ ] Repository-wide upstream and license audit
 - [ ] Baseline CI and compatibility inventory
-- [ ] Module manifest and registry prototype
-- [ ] Dependency resolver and lifecycle prototype
+- [x] Initial module manifest, registry, dependency resolver, and lifecycle prototype (`moonwitness-module`)
+- [ ] Async lifecycle, migration coordination, and ORM integration
 - [ ] First reference add-on
 - [ ] MoonWitness crate namespace transition
 
-Until the relevant implementation and tests land, module runtime capabilities described in the blueprint should be treated as planned architecture.
+The `moonwitness-module` crate is an experimental first kernel implementation with unit tests for manifest parsing, dependency ordering, compatibility, cycle detection, and lifecycle rollback. It is not yet a production-ready module platform; migration coordination, async lifecycle, ORM integration, extension contracts, security review, and end-to-end CI remain open.
 
 ## Roadmap
 
@@ -143,7 +143,7 @@ Until the relevant implementation and tests land, module runtime capabilities de
 | 4 | First add-ons | Reference modules with integration tests and compatibility policy |
 | 5 | Independent ecosystem | CLI, codegen, adapters, documentation, release process |
 
-See [BLUEPRINT.md](docs/BLUEPRINT.md) for detailed work packages and acceptance criteria.
+See [the module kernel crate](moonwitness-module/README.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), and [BLUEPRINT.md](docs/BLUEPRINT.md) for implementation scope and acceptance criteria.
 
 ## Non-goals
 
