@@ -129,6 +129,8 @@ Every extension contract needs:
 
 ## Workstream F — First reference add-ons
 
+**Initial example delivered:** `moonwitness-addon-audit` demonstrates registering an audit store service and subscribing to typed record-change events. It is intentionally in-memory and does not automatically intercept ORM writes; durable storage and transaction-after-commit integration remain open.
+
 Choose one low-risk add-on first. Recommended sequence:
 
 1. **Audit metadata** — explicit audit context and event records; carefully define actor and data capture.
