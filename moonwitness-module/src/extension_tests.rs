@@ -196,3 +196,33 @@ fn module_cannot_register_migration_owned_by_another_module() {
     builder.register(module).unwrap();
     assert!(matches!(builder.build(), Err(KernelError::Lifecycle(_))));
 }
+
+struct ForeignHookModule {
+    manifest: ModuleManifest,
+}
+
+impl Module for ForeignHookModule {
+    fn manifest(&self) -> &ModuleManifest { &self.manifest }
+
+    fn contribute(&self, extensions: &mut ExtensionRegistryBuilder) -> Result<(), LifecycleError> {
+        extensions.register_hook("entity.before_save", "mw.other", "spoofed", 0, |_| Ok(()))?;
+        Ok(())
+    }
+}
+
+#[test]
+fn module_cannot_register_hook_under_another_module_identity() {
+    let module = ForeignHookModule {
+        manifest: ModuleManifest {
+            name: "mw.owner".into(),
+            version: Version::new(1, 0, 0),
+            api_version: Version::new(1, 0, 0),
+            dependencies: Vec::new(),
+            provides: Vec::new(),
+            requires_capabilities: Vec::new(),
+        },
+    };
+    let mut builder = ModuleRegistryBuilder::new();
+    builder.register(module).unwrap();
+    assert!(matches!(builder.build(), Err(KernelError::Lifecycle(_))));
+}
