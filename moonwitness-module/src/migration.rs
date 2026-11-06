@@ -74,10 +74,14 @@ pub enum MigrationError {
     #[error("applied migration '{module}:{id}' is missing from the current catalog")]
     UnknownApplied { module: String, id: String },
     /// The version of a previously applied migration has changed.
-    #[error("version mismatch for applied migration '{module}:{id}': recorded {recorded}, current {current}")]
+    #[error(
+        "version mismatch for applied migration '{module}:{id}': recorded {recorded}, current {current}"
+    )]
     VersionMismatch { module: String, id: String, recorded: u64, current: u64 },
     /// The source of a previously applied migration has changed.
-    #[error("checksum mismatch for applied migration '{module}:{id}': recorded {recorded}, current {current}")]
+    #[error(
+        "checksum mismatch for applied migration '{module}:{id}': recorded {recorded}, current {current}"
+    )]
     ChecksumMismatch { module: String, id: String, recorded: String, current: String },
 }
 
@@ -159,7 +163,9 @@ impl MigrationCatalog {
             .map(|(index, name)| (name.as_str(), index))
             .collect();
         let mut pending: Vec<_> = self.migrations.iter()
-            .filter(|migration| !applied_keys.contains(&(migration.module.clone(), migration.id.clone())))
+            .filter(|migration| {
+                !applied_keys.contains(&(migration.module.clone(), migration.id.clone()))
+            })
             .cloned()
             .collect();
         pending.sort_by(|left, right| {
@@ -193,7 +199,10 @@ fn valid_identifier(value: &str) -> bool {
             !part.is_empty()
                 && part.as_bytes()[0].is_ascii_lowercase()
                 && part.bytes().all(|byte| {
-                    byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
+                    byte.is_ascii_lowercase()
+                        || byte.is_ascii_digit()
+                        || byte == b'-'
+                        || byte == b'_'
                 })
         })
 }
