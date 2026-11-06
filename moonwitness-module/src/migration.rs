@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::{collections::{BTreeMap, BTreeSet}, sync::Arc};
 
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -14,6 +14,7 @@ pub struct MigrationDescriptor {
     pub version: u64,
     /// SHA-256 checksum of the migration source supplied at construction.
     pub checksum: String,
+    source: Arc<[u8]>,
 }
 
 impl MigrationDescriptor {
@@ -34,8 +35,11 @@ impl MigrationDescriptor {
         }
         let digest = Sha256::digest(source);
         let checksum = digest.iter().map(|byte| format!("{byte:02x}")).collect();
-        Ok(Self { module, id, version, checksum })
+        Ok(Self { module, id, version, checksum, source: Arc::from(source) })
     }
+
+    /// Return the immutable migration source bytes used to calculate the checksum.
+    pub fn source(&self) -> &[u8] { &self.source }
 
     /// Return the globally namespaced migration key.
     pub fn key(&self) -> String { format!("{}:{}", self.module, self.id) }
@@ -48,6 +52,8 @@ pub struct AppliedMigration {
     pub module: String,
     /// Stable migration identifier.
     pub id: String,
+    /// Monotonic migration version recorded when the migration was applied.
+    pub version: u64,
     /// Checksum recorded when the migration was applied.
     pub checksum: String,
 }
@@ -67,6 +73,9 @@ pub enum MigrationError {
     /// An applied migration no longer exists in the current catalog.
     #[error("applied migration '{module}:{id}' is missing from the current catalog")]
     UnknownApplied { module: String, id: String },
+    /// The version of a previously applied migration has changed.
+    #[error("version mismatch for applied migration '{module}:{id}': recorded {recorded}, current {current}")]
+    VersionMismatch { module: String, id: String, recorded: u64, current: u64 },
     /// The source of a previously applied migration has changed.
     #[error("checksum mismatch for applied migration '{module}:{id}': recorded {recorded}, current {current}")]
     ChecksumMismatch { module: String, id: String, recorded: String, current: String },
@@ -130,6 +139,12 @@ impl MigrationCatalog {
                     id: record.id.clone(),
                 });
             };
+            if migration.version != record.version {
+                return Err(MigrationError::VersionMismatch {
+                    module: record.module.clone(), id: record.id.clone(),
+                    recorded: record.version, current: migration.version,
+                });
+            }
             if migration.checksum != record.checksum {
                 return Err(MigrationError::ChecksumMismatch {
                     module: record.module.clone(),
