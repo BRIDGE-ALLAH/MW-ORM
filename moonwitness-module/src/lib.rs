@@ -1,24 +1,38 @@
 //! Static, typed module composition for MoonWitness applications.
 //!
-//! This crate is deliberately independent from the ORM crate. It provides a
-//! deterministic module registry, manifest validation, dependency planning,
-//! and a synchronous lifecycle host. Dynamic library loading and database
-//! migration execution are intentionally outside this MVP.
+//! This crate provides deterministic module registration, manifest validation,
+//! dependency planning, synchronous lifecycle hosting, typed service sharing,
+//! ordered hooks, in-process events, and migration planning metadata.
+//! Database-specific migration execution and dynamic library loading are
+//! intentionally outside this crate's current scope.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
 mod error;
+mod events;
+mod hooks;
 mod host;
 mod manifest;
+mod migration;
 mod registry;
 mod resolver;
+mod services;
 
 pub use error::{KernelError, LifecycleError};
+pub use events::EventBus;
+pub use hooks::{HookContext, HookRegistry};
 pub use host::{Module, ModuleContext, ModuleHost};
 pub use manifest::{ModuleDependency, ModuleManifest};
+pub use migration::{
+    AppliedMigration, MigrationCatalog, MigrationDescriptor, MigrationError, MigrationPlan,
+};
 pub use registry::{ModuleRegistry, ModuleRegistryBuilder};
 pub use resolver::ActivationPlan;
+pub use services::{ServiceRegistry, ServiceRegistryBuilder};
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod extension_tests;
