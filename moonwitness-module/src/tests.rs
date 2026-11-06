@@ -185,7 +185,7 @@ fn host_rolls_back_activated_modules_when_activation_fails() {
     assert!(host.active_modules().is_empty());
     assert_eq!(
         *calls.lock().expect("test mutex"),
-        vec!["prepare:mw.core", "prepare:mw.fail", "activate:mw.core", "activate:mw.fail", "deactivate:mw.core"]
+        vec!["prepare:mw.core", "prepare:mw.fail", "activate:mw.core", "activate:mw.fail", "deactivate:mw.fail", "deactivate:mw.core"]
             .into_iter().map(String::from).collect::<Vec<_>>()
     );
 }
