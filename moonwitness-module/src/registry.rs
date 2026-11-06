@@ -70,7 +70,7 @@ impl ModuleRegistryBuilder {
             modules: self.modules,
             manifests,
             plan,
-            extensions: contributions.build(),
+            extensions: contributions.build().map_err(KernelError::Lifecycle)?,
         })
     }
 }
