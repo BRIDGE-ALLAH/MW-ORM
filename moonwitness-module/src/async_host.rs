@@ -66,7 +66,10 @@ impl AsyncModuleRegistryBuilder {
     pub fn new() -> Self { Self::default() }
 
     /// Register a statically linked asynchronous module.
-    pub fn register<M: AsyncModule + 'static>(&mut self, module: M) -> Result<&mut Self, KernelError> {
+    pub fn register<M: AsyncModule + 'static>(
+        &mut self,
+        module: M,
+    ) -> Result<&mut Self, KernelError> {
         let manifest = module.manifest().clone();
         manifest.validate()?;
         let name = manifest.name.clone();
@@ -124,14 +127,18 @@ impl AsyncModuleHost {
     /// reverse order. Modules whose rollback fails remain marked active.
     pub async fn start(&mut self) -> Result<(), LifecycleError> {
         if !self.active.is_empty() {
-            return Err(LifecycleError::new("async module host is already started or requires shutdown retry"));
+            return Err(LifecycleError::new(
+                "async module host is already started or requires shutdown retry",
+            ));
         }
         let plan = self.registry.activation_plan().ordered_modules().to_vec();
         for name in &plan {
             let module = self.registry.modules.get(name)
                 .expect("registry plan only contains registered modules");
             module.prepare(&self.context).await
-                .map_err(|error| LifecycleError::new(format!("module '{name}' failed to prepare: {error}")))?;
+                .map_err(|error| {
+                    LifecycleError::new(format!("module '{name}' failed to prepare: {error}"))
+                })?;
         }
         for name in plan {
             let module = self.registry.modules.get(&name)
