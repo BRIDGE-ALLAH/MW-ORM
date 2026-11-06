@@ -87,7 +87,8 @@ pub trait Module: Send + Sync {
         Ok(())
     }
 
-    /// Deactivate a previously activated module.
+    /// Deactivate this module, including partial state left by a failed activation.
+    /// Implementations should make this operation safe to retry after an error.
     fn deactivate(&self, _context: &ModuleContext) -> Result<(), LifecycleError> {
         Ok(())
     }
