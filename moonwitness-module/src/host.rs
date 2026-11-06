@@ -80,7 +80,9 @@ impl ModuleHost {
     /// remain recorded as active so a later `stop` call can retry cleanup.
     pub fn start(&mut self) -> Result<(), LifecycleError> {
         if !self.active.is_empty() {
-            return Err(LifecycleError::new("module host has modules requiring shutdown"));
+            return Err(LifecycleError::new(
+                "module host has modules requiring shutdown",
+            ));
         }
 
         let plan = self.registry.activation_plan().ordered_modules().to_vec();
