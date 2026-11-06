@@ -104,7 +104,7 @@ impl Module for ContributingModule {
         extensions.register_service(String::from("registered-before-start"))?;
         let migration = MigrationDescriptor::new("mw.contrib", "create_audit", 1, b"CREATE TABLE audit")
             .map_err(|error| LifecycleError::new(error.to_string()))?;
-        extensions.register_migration(migration);
+        extensions.register_migration(migration)?;
         extensions.register_hook("test.before", "mw.contrib", "mark", 0, |context| {
             context.insert("hook", "ran");
             Ok(())
