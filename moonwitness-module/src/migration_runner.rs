@@ -21,7 +21,11 @@ pub trait MigrationBackend: Send + Sync {
     ///
     /// Implementations must reject non-UTF-8 SQL and must not mark the migration
     /// applied unless execution completed successfully.
-    async fn apply_and_record(&self, migration: &crate::MigrationDescriptor) -> Result<(), String>;
+    async fn apply_and_record(
+        &self,
+        namespace: &str,
+        migration: &crate::MigrationDescriptor,
+    ) -> Result<(), String>;
 
     /// Release the exclusive migration lock.
     async fn release_lock(&self, namespace: &str) -> Result<(), String>;
@@ -102,7 +106,7 @@ impl MigrationRunner {
             .map_err(MigrationRunError::HistoryRead)?;
         let plan = catalog.plan(module_order, &history)?;
         for migration in plan.pending() {
-            backend.apply_and_record(migration).await.map_err(|message| {
+            backend.apply_and_record(namespace, migration).await.map_err(|message| {
                 MigrationRunError::Apply {
                     migration: migration.key(),
                     message,
