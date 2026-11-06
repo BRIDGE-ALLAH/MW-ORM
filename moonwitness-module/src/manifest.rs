@@ -39,6 +39,14 @@ impl ModuleManifest {
     /// Validate identifiers and reject duplicate or self-referential declarations.
     pub fn validate(&self) -> Result<(), KernelError> {
         validate_name(&self.name)?;
+        let supported_api = Version::new(1, 0, 0);
+        if self.api_version.major != supported_api.major || self.api_version > supported_api {
+            return Err(KernelError::UnsupportedApiVersion {
+                module: self.name.clone(),
+                required: self.api_version.to_string(),
+                supported: supported_api.to_string(),
+            });
+        }
         let mut dependencies = std::collections::BTreeSet::new();
         for dependency in &self.dependencies {
             validate_name(&dependency.name)?;
@@ -87,7 +95,7 @@ fn validate_name(name: &str) -> Result<(), KernelError> {
 fn validate_unique_names(module: &str, label: &str, values: &[String]) -> Result<(), KernelError> {
     let mut seen = std::collections::BTreeSet::new();
     for value in values {
-        if value.trim().is_empty() || !seen.insert(value) {
+        if validate_name(value).is_err() || !seen.insert(value) {
             return Err(KernelError::InvalidManifest {
                 module: module.to_owned(),
                 reason: format!("{label} '{value}' is empty or duplicated"),
