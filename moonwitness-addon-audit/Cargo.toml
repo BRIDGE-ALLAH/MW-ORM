@@ -9,3 +9,4 @@ repository = "https://github.com/BRIDGE-ALLAH/MW-ORM"
 
 [dependencies]
 moonwitness-module = { path = "../moonwitness-module" }
+semver = "1"
