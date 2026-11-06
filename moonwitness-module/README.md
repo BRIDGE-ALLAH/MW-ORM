@@ -10,7 +10,8 @@ module composition for Rust applications.
 - Capability provider validation and deterministic dependency-first planning.
 - Static synchronous and asynchronous module registries with prepare/activate/deactivate lifecycle.
 - Best-effort activation rollback and reverse-order shutdown.
-- Module contribution phase that freezes services, hooks, and event subscribers into one immutable extension registry.\n- Typed, immutable service registry.
+- Module contribution phase that freezes services, hooks, and event subscribers into one immutable extension registry.
+- Typed, immutable service registry.
 - Deterministically ordered named hooks with fail-fast dispatch.
 - Typed in-process events with deterministic subscriber order.
 - Module-scoped migration descriptors, SHA-256 checksums, history validation,
@@ -66,8 +67,7 @@ runner. Destructive rollback is never implied.
 - Synchronous and async lifecycle hosts are available; both use static Rust module values.
 - Module preparation and activation are not connected to a database transaction.
 - Migration support is planning and integrity metadata only, not execution.
-- Hooks and events are standalone registries; modules do not yet contribute to
-  them through a single frozen application builder.
+- Modules contribute services, hooks, and event handlers during registry construction; the host exposes the frozen registry through `ModuleContext`.
 - There is no dynamic library loading, hot reload, tenant isolation, or
   production security certification.
 - The kernel is experimental and its public API may change.
