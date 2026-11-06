@@ -51,7 +51,9 @@ pub enum MigrationRunError {
     #[error("migration work completed but lock release failed: {0}")]
     LockRelease(String),
     /// Both migration work and lock release failed.
-    #[error("migration work failed ({operation_error}); lock release also failed ({release_error})")]
+    #[error(
+        "migration work failed ({operation_error}); lock release also failed ({release_error})"
+    )]
     OperationAndRelease {
         operation_error: String,
         release_error: String,
