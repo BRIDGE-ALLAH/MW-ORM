@@ -26,7 +26,7 @@ impl MigrationBackend for FakeBackend {
         Ok(self.history.lock().unwrap().clone())
     }
 
-    async fn apply_and_record(&self, migration: &MigrationDescriptor) -> Result<(), String> {
+    async fn apply_and_record(&self, _namespace: &str, migration: &MigrationDescriptor) -> Result<(), String> {
         if self.fail_apply { return Err("simulated DDL failure".into()); }
         self.executed.lock().unwrap().push(migration.key());
         self.history.lock().unwrap().push(AppliedMigration {
