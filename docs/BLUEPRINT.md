@@ -81,7 +81,9 @@ Start with Rust-defined descriptors or a small validated manifest format. Avoid 
 
 **Exit criteria:** integration test with a host and at least two dependent modules; stable deterministic plan; clear failure diagnostics.
 
-## Workstream D — Lifecycle and migrations\n\n**Partial implementation:** the kernel now creates namespaced migration descriptors, calculates SHA-256 checksums, detects duplicate ids/versions, rejects missing historical migrations and checksum drift, and creates deterministic pending plans. It does not execute migrations, manage transactions, acquire database locks, or persist history.
+## Workstream D — Lifecycle and migrations
+
+**Partial implementation:** the kernel now creates namespaced migration descriptors, calculates SHA-256 checksums, detects duplicate ids/versions, rejects missing historical migrations and checksum drift, and creates deterministic pending plans. It does not execute migrations, manage transactions, acquire database locks, or persist history.
 
 Define lifecycle states and transitions:
 
@@ -102,7 +104,9 @@ Implement:
 
 **Exit criteria:** repeatable install/upgrade test, failed migration test, checksum mismatch test, and no silent data deletion.
 
-## Workstream E — Extension contracts\n\n**Initial implementation:** modules can contribute typed services, ordered hooks, and typed in-process event handlers during registry construction. Contributions are frozen in dependency order and exposed through the lifecycle context. Delivery is synchronous and in-process only.
+## Workstream E — Extension contracts
+
+**Initial implementation:** modules can contribute typed services, ordered hooks, and typed in-process event handlers during registry construction. Contributions are frozen in dependency order and exposed through the lifecycle context. Delivery is synchronous and in-process only.
 
 Start with the least magical, most testable extension types:
 
