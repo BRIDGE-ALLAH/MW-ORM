@@ -61,10 +61,12 @@ impl ModuleRegistryBuilder {
         let plan = resolver::resolve(&manifests)?;
         let mut contributions = ExtensionRegistryBuilder::new();
         for name in plan.ordered_modules() {
+            contributions.begin_module(name);
             self.modules.get(name)
                 .expect("registry plan only contains registered modules")
                 .contribute(&mut contributions)
                 .map_err(|error: LifecycleError| KernelError::Lifecycle(error))?;
+            contributions.end_module();
         }
         Ok(ModuleRegistry {
             modules: self.modules,
