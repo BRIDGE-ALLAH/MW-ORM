@@ -144,6 +144,8 @@ Do not start with tenant isolation as the first add-on: it affects every query p
 
 ## Workstream G — MW-BAAS integration boundary
 
+**Integration draft opened:** [MW-BAAS PR #2](https://github.com/BRIDGE-ALLAH/MW-BAAS/pull/2) adds an opt-in Loco initializer, injects the SeaORM connection as a typed module service, and wires shutdown. It currently depends on the MW-ORM kernel branch in [PR #3](https://github.com/BRIDGE-ALLAH/MW-ORM/pull/3); both changes remain unmerged and require CI validation.
+
 - Define the exact dependency direction: MW-BAAS consumes MoonWitness; MoonWitness must not depend on MW-BAAS.
 - Publish versioned contracts for module registration, lifecycle participation, migrations, and shared data capabilities.
 - Build a small reference integration that proves MW-BAAS can compose MoonWitness modules without coupling BAAS product logic into the ORM core.
