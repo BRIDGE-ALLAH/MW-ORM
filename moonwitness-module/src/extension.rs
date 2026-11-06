@@ -44,6 +44,8 @@ impl ExtensionRegistryBuilder {
     where
         F: Fn(&mut HookContext) -> Result<(), LifecycleError> + Send + Sync + 'static,
     {
+        let module = module.into();
+        self.ensure_owner(&module)?;
         self.hooks.register(hook_name, module, id, priority, callback)?;
         Ok(self)
     }
