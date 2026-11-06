@@ -9,6 +9,7 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod async_host;
 mod error;
 mod events;
 mod hooks;
@@ -19,6 +20,7 @@ mod registry;
 mod resolver;
 mod services;
 
+pub use async_host::{AsyncModule, AsyncModuleHost, AsyncModuleRegistry, AsyncModuleRegistryBuilder};
 pub use error::{KernelError, LifecycleError};
 pub use events::EventBus;
 pub use hooks::{HookContext, HookRegistry};
@@ -36,3 +38,6 @@ mod tests;
 
 #[cfg(test)]
 mod extension_tests;
+
+#[cfg(test)]
+mod async_tests;
