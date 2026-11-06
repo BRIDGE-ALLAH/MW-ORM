@@ -175,7 +175,7 @@ impl ModuleHost {
                 .expect("active modules are registered");
             if let Err(error) = module.deactivate(&self.context) {
                 return Err(LifecycleError::new(format!(
-                    "module shutdown failed at '{name}': {error}; dependent modules remain active"
+                    "module shutdown failed at '{name}': {error}; earlier modules remain active to preserve activation order"
                 )));
             }
             self.active.pop();
