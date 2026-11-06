@@ -65,7 +65,7 @@ fn migration_plan_is_namespaced_ordered_and_checksum_checked() {
     let plan = catalog.plan(&["mw.core".into(), "mw.audit".into()], &[]).unwrap();
     assert_eq!(plan.pending().iter().map(|m| m.module.as_str()).collect::<Vec<_>>(),
         vec!["mw.core", "mw.audit"]);
-    let applied = [AppliedMigration { module: "mw.core".into(), id: "create_base".into(), checksum: core.checksum.clone() }];
+    let applied = [AppliedMigration { module: "mw.core".into(), id: "create_base".into(), version: 1, checksum: core.checksum.clone() }];
     let pending = catalog.plan(&["mw.core".into(), "mw.audit".into()], &applied).unwrap();
     assert_eq!(pending.pending(), &[audit]);
 }
@@ -74,9 +74,9 @@ fn migration_plan_is_namespaced_ordered_and_checksum_checked() {
 fn migration_catalog_rejects_checksum_drift_and_unknown_history() {
     let migration = MigrationDescriptor::new("mw.core", "base", 1, b"v1").unwrap();
     let catalog = MigrationCatalog::new(vec![migration]).unwrap();
-    let changed = AppliedMigration { module: "mw.core".into(), id: "base".into(), checksum: "0".repeat(64) };
+    let changed = AppliedMigration { module: "mw.core".into(), id: "base".into(), version: 1, checksum: "0".repeat(64) };
     assert!(matches!(catalog.plan(&[], &[changed]), Err(MigrationError::ChecksumMismatch { .. })));
-    let missing = AppliedMigration { module: "mw.legacy".into(), id: "old".into(), checksum: "0".repeat(64) };
+    let missing = AppliedMigration { module: "mw.legacy".into(), id: "old".into(), version: 1, checksum: "0".repeat(64) };
     assert!(matches!(catalog.plan(&[], &[missing]), Err(MigrationError::UnknownApplied { .. })));
 }
 
