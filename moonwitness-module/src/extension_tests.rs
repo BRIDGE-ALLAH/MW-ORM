@@ -1,8 +1,11 @@
-use std::sync::{Arc, Mutex};
+use std::{collections::BTreeMap, sync::{Arc, Mutex, atomic::{AtomicBool, AtomicUsize, Ordering}}};
+
+use semver::Version;
 
 use crate::{
     AppliedMigration, EventBus, HookContext, HookRegistry, MigrationCatalog,
-    MigrationDescriptor, MigrationError, ModuleContext, ServiceRegistryBuilder,
+    ExtensionRegistryBuilder, LifecycleError, MigrationDescriptor, MigrationError, Module,
+    ModuleContext, ModuleHost, ModuleManifest, ModuleRegistryBuilder, ServiceRegistryBuilder,
 };
 
 #[test]
@@ -86,4 +89,71 @@ fn module_context_exposes_registered_services() {
         builder.build(),
     );
     assert_eq!(*context.service::<u64>().unwrap(), 42);
+}
+
+struct ContributingModule {
+    manifest: ModuleManifest,
+    prepared: Arc<AtomicBool>,
+    events_seen: Arc<AtomicUsize>,
+}
+
+impl Module for ContributingModule {
+    fn manifest(&self) -> &ModuleManifest { &self.manifest }
+
+    fn contribute(&self, extensions: &mut ExtensionRegistryBuilder) -> Result<(), LifecycleError> {
+        extensions.register_service(String::from("registered-before-start"))?;
+        extensions.register_hook("test.before", "mw.contrib", "mark", 0, |context| {
+            context.insert("hook", "ran");
+            Ok(())
+        })?;
+        let events_seen = Arc::clone(&self.events_seen);
+        extensions.subscribe_event::<u32, _>("mw.contrib", "count", move |value| {
+            if *value == 7 {
+                events_seen.fetch_add(1, Ordering::SeqCst);
+            }
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    fn prepare(&self, context: &ModuleContext) -> Result<(), LifecycleError> {
+        if context.service::<String>().as_deref().map(String::as_str) != Some("registered-before-start") {
+            return Err(LifecycleError::new("contributed service is missing"));
+        }
+        let mut hook_context = HookContext::new();
+        context.dispatch_hook("test.before", &mut hook_context)?;
+        if hook_context.get("hook") != Some("ran") {
+            return Err(LifecycleError::new("contributed hook did not run"));
+        }
+        context.publish_event(&7_u32)?;
+        self.prepared.store(true, Ordering::SeqCst);
+        Ok(())
+    }
+}
+
+#[test]
+fn modules_contribute_services_hooks_and_events_before_prepare() {
+    let prepared = Arc::new(AtomicBool::new(false));
+    let events_seen = Arc::new(AtomicUsize::new(0));
+    let module = ContributingModule {
+        manifest: ModuleManifest {
+            name: "mw.contrib".into(),
+            version: Version::new(1, 0, 0),
+            api_version: Version::new(1, 0, 0),
+            dependencies: Vec::new(),
+            provides: Vec::new(),
+            requires_capabilities: Vec::new(),
+        },
+        prepared: Arc::clone(&prepared),
+        events_seen: Arc::clone(&events_seen),
+    };
+    let mut builder = ModuleRegistryBuilder::new();
+    builder.register(module).unwrap();
+    let registry = builder.build().unwrap();
+    let mut host = ModuleHost::new(registry, ModuleContext::new(BTreeMap::new()));
+    host.start().unwrap();
+
+    assert!(prepared.load(Ordering::SeqCst));
+    assert_eq!(events_seen.load(Ordering::SeqCst), 1);
+    host.stop().unwrap();
 }
