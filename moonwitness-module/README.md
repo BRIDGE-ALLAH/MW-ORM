@@ -15,7 +15,7 @@ module composition for Rust applications.
 - Deterministically ordered named hooks with fail-fast dispatch.
 - Typed in-process events with deterministic subscriber order.
 - Module-scoped migration descriptors, SHA-256 checksums, history validation,
-  and deterministic pending migration plans.
+  and deterministic pending migration plans.\n- Async migration coordinator contract with namespace locking, sequential application, and lock cleanup.
 
 ## Minimal module
 
@@ -66,7 +66,7 @@ runner. Destructive rollback is never implied.
 
 - Synchronous and async lifecycle hosts are available; both use static Rust module values.
 - Module preparation and activation are not connected to a database transaction.
-- Migration support is planning and integrity metadata only, not execution.
+- Migration coordination is generic; a production database backend and transaction/locking integration are still required.
 - Modules contribute services, hooks, and event handlers during registry construction; the host exposes the frozen registry through `ModuleContext`.
 - There is no dynamic library loading, hot reload, tenant isolation, or
   production security certification.
