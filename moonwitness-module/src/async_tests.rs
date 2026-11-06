@@ -67,6 +67,9 @@ impl AsyncModule for RetryRollbackModule {
     }
 
     async fn deactivate(&self, _context: &ModuleContext) -> Result<(), LifecycleError> {
+        if self.fail_activation {
+            return Ok(());
+        }
         let attempt = self.deactivation_attempts.fetch_add(1, Ordering::SeqCst);
         if attempt == 0 {
             Err(LifecycleError::new("transient rollback failure"))
