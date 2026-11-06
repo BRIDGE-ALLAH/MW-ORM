@@ -114,8 +114,7 @@ impl ModuleHost {
                 for active_name in self.active.iter().rev() {
                     if let Some(active_module) = self.registry.modules.get(active_name) {
                         if let Err(rollback_error) = active_module.deactivate(&self.context) {
-                            rollback_failures
-                                .push(format!("{active_name}: {rollback_error}"));
+                            rollback_failures.push(format!("{active_name}: {rollback_error}"));
                             remaining_active.push(active_name.clone());
                         }
                     }
