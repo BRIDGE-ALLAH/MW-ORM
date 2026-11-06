@@ -59,6 +59,8 @@ impl ExtensionRegistryBuilder {
         E: Send + Sync + 'static,
         F: Fn(&E) -> Result<(), LifecycleError> + Send + Sync + 'static,
     {
+        let module = module.into();
+        self.ensure_owner(&module)?;
         self.events.subscribe::<E, F>(module, id, callback)?;
         Ok(self)
     }
@@ -78,6 +80,18 @@ impl ExtensionRegistryBuilder {
         }
         self.migrations.push(migration);
         Ok(self)
+    }
+
+    fn ensure_owner(&self, declared: &str) -> Result<(), LifecycleError> {
+        let Some(owner) = self.current_module.as_deref() else {
+            return Err(LifecycleError::new("hooks and events can only be registered during module contribution"));
+        };
+        if declared != owner {
+            return Err(LifecycleError::new(format!(
+                "module '{owner}' cannot register an extension owned by '{declared}'"
+            )));
+        }
+        Ok(())
     }
 
     pub(crate) fn begin_module(&mut self, module: &str) {
