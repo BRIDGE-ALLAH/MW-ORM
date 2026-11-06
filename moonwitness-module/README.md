@@ -5,7 +5,7 @@ module composition for Rust applications.
 
 ## Current capabilities
 
-- TOML module manifests with semantic versions and dependency declarations.
+- TOML module manifests with semantic versions, dependency declarations, and kernel API compatibility checks.
 - Required and optional module dependency validation.
 - Capability provider validation and deterministic dependency-first planning.
 - Static synchronous and asynchronous module registries with prepare/activate/deactivate lifecycle.
@@ -53,24 +53,18 @@ immutable registry of shared `Arc` instances.
 
 ## Migration planning
 
-`MigrationDescriptor::new` calculates a SHA-256 checksum from migration source
-bytes. `MigrationCatalog` rejects duplicate module-scoped identifiers or
-versions, validates the checksums of applied history records, and produces a
-deterministic pending plan.
+`MigrationDescriptor::new` retains immutable source bytes and calculates a SHA-256 checksum from those exact bytes. `MigrationCatalog` rejects duplicate module-scoped identifiers or versions, validates applied migration versions and checksums, and produces a deterministic pending plan. The async `MigrationRunner` passes the application namespace and SQL source to a backend, coordinates lock acquisition/release, validates history, and applies pending migrations in order.
 
-This crate does **not** execute SQL, open database transactions, acquire
-database locks, or write migration history. A database adapter must implement
-those operational guarantees before this can be described as a migration
-runner. Destructive rollback is never implied.
+The kernel does **not** ship a production SQLx/SeaORM backend. A database adapter must implement real database locks, SQL execution, durable history, and transaction semantics before module-owned migrations can run against an application database. Destructive rollback is never implied.
 
 ## Current limitations
 
 - Synchronous and async lifecycle hosts are available; both use static Rust module values.
 - Module preparation and activation are not connected to a database transaction.
-- Migration coordination is generic; a production database backend and transaction/locking integration are still required.
+- Migration coordination is generic; a production database backend with real transaction/locking integration is still required.
 - Modules contribute services, hooks, and event handlers during registry construction; the host exposes the frozen registry through `ModuleContext`.
 - There is no dynamic library loading, hot reload, tenant isolation, or
   production security certification.
-- The kernel is experimental and its public API may change.
+- The kernel currently supports module API version `1.0.0`; manifests targeting a different major or a newer minor version are rejected. The kernel is experimental and its public API may change.
 
 The standalone ORM remains independent by default. Enable the root package's optional `module-runtime` feature to access this crate as `sea_orm::modules`.
