@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use async_trait::async_trait;
 
-use crate::{ActivationPlan, KernelError, LifecycleError, ModuleContext, ModuleManifest, resolver};
+use crate::{\n    ActivationPlan, ExtensionRegistry, ExtensionRegistryBuilder, KernelError, LifecycleError,\n    ModuleContext, ModuleManifest, resolver,\n};
 
 /// An asynchronously initialized, statically linked module.
 #[async_trait]
@@ -86,7 +86,7 @@ pub struct AsyncModuleHost {
 impl AsyncModuleHost {
     /// Create a host for a validated asynchronous registry.
     pub fn new(registry: AsyncModuleRegistry, context: ModuleContext) -> Self {
-        Self { registry, context, active: Vec::new() }
+        let mut context = context;\n        context.extensions = registry.extensions.clone();\n        Self { registry, context, active: Vec::new() }
     }
 
     /// Return modules currently considered active by the host.
