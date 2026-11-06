@@ -17,7 +17,8 @@ pub trait MigrationBackend: Send + Sync {
     /// Load applied migration identities and checksums for a namespace.
     async fn load_history(&self, namespace: &str) -> Result<Vec<AppliedMigration>, String>;
 
-    /// Execute the SQL in `migration.source()` and persist its version and checksum.
+    /// Execute the SQL in `migration.source()` and persist its version and checksum
+    /// within the supplied application namespace.
     ///
     /// Implementations must reject non-UTF-8 SQL and must not mark the migration
     /// applied unless execution completed successfully.
