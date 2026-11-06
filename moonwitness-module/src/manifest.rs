@@ -83,7 +83,12 @@ fn validate_name(name: &str) -> Result<(), KernelError> {
         && name.split('.').all(|part| {
             !part.is_empty()
                 && part.as_bytes()[0].is_ascii_lowercase()
-                && part.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_')
+                && part.bytes().all(|byte| {
+                    byte.is_ascii_lowercase()
+                        || byte.is_ascii_digit()
+                        || byte == b'-'
+                        || byte == b'_'
+                })
         });
     if valid {
         Ok(())
