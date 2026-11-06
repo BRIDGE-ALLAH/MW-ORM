@@ -26,7 +26,8 @@ fn manifest(name: &str, version: &str) -> ModuleManifest {
 
 #[test]
 fn toml_manifest_is_parsed_and_validated() {
-    let parsed = ModuleManifest::from_toml(r#"
+    let parsed = ModuleManifest::from_toml(
+        r#"
 name = "mw.audit"
 version = "0.2.0"
 api_version = "1.0.0"
@@ -36,7 +37,9 @@ provides = ["audit.events"]
 name = "mw.core"
 version = "^1.0"
 optional = false
-"#).expect("manifest should parse");
+"#,
+    )
+    .expect("manifest should parse");
 
     assert_eq!(parsed.name, "mw.audit");
     assert_eq!(parsed.dependencies[0].name, "mw.core");
@@ -344,7 +347,6 @@ fn host_retains_modules_when_shutdown_fails_and_allows_retry() {
     host.stop().expect("retry shutdown");
     assert!(host.active_modules().is_empty());
 }
-
 
 #[test]
 fn host_retains_partially_activated_module_when_rollback_fails() {
