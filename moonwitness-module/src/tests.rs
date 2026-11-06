@@ -269,3 +269,14 @@ impl Module for TestModule {
         Ok(())
     }
 }
+
+#[test]
+fn registry_rejects_unsupported_module_api_version() {
+    let mut unsupported = manifest("mw.future", "1.0.0");
+    unsupported.api_version = Version::new(2, 0, 0);
+    let mut builder = ModuleRegistryBuilder::new();
+    assert!(matches!(
+        builder.register(TestModule::new(unsupported)),
+        Err(KernelError::UnsupportedApiVersion { .. })
+    ));
+}
