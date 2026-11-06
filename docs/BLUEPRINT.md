@@ -43,7 +43,7 @@ The standalone ORM remains independently usable.
 
 ## Workstream C — Module kernel MVP
 
-**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, capability provider resolution, deterministic activation plans, a static registry, synchronous lifecycle, typed service lookup, ordered hooks, typed in-process events, and SHA-256 migration descriptors with checksum-validated planning. It is a prototype, not a stable public API. Database migration execution and async lifecycle are still not implemented.
+**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, capability provider resolution, deterministic activation plans, a static registry, synchronous lifecycle, typed service lookup, ordered hooks, typed in-process events, and SHA-256 migration descriptors with checksum-validated planning. It is a prototype, not a stable public API. Database migration execution and ORM-specific adapters are still not implemented. Both synchronous and asynchronous lifecycle hosts now collect module contributions into a single immutable extension registry.
 
 Build the first kernel as an optional crate, tentatively `moonwitness-module`.
 
@@ -102,7 +102,7 @@ Implement:
 
 **Exit criteria:** repeatable install/upgrade test, failed migration test, checksum mismatch test, and no silent data deletion.
 
-## Workstream E — Extension contracts\n\n**Partial implementation:** standalone typed service lookup, ordered named hooks, and typed in-process events are available. The module lifecycle does not yet aggregate contributions into one immutable application registry.
+## Workstream E — Extension contracts\n\n**Initial implementation:** modules can contribute typed services, ordered hooks, and typed in-process event handlers during registry construction. Contributions are frozen in dependency order and exposed through the lifecycle context. Delivery is synchronous and in-process only.
 
 Start with the least magical, most testable extension types:
 
