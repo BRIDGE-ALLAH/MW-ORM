@@ -43,7 +43,7 @@ The standalone ORM remains independently usable.
 
 ## Workstream C — Module kernel MVP
 
-**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, capability provider resolution, deterministic activation plans, a static registry, synchronous lifecycle hooks, reverse-order shutdown, and best-effort rollback after activation failure. It is a prototype, not a stable public API.
+**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, capability provider resolution, deterministic activation plans, a static registry, synchronous lifecycle, typed service lookup, ordered hooks, typed in-process events, and SHA-256 migration descriptors with checksum-validated planning. It is a prototype, not a stable public API. Database migration execution and async lifecycle are still not implemented.
 
 Build the first kernel as an optional crate, tentatively `moonwitness-module`.
 
@@ -81,7 +81,7 @@ Start with Rust-defined descriptors or a small validated manifest format. Avoid 
 
 **Exit criteria:** integration test with a host and at least two dependent modules; stable deterministic plan; clear failure diagnostics.
 
-## Workstream D — Lifecycle and migrations
+## Workstream D — Lifecycle and migrations\n\n**Partial implementation:** the kernel now creates namespaced migration descriptors, calculates SHA-256 checksums, detects duplicate ids/versions, rejects missing historical migrations and checksum drift, and creates deterministic pending plans. It does not execute migrations, manage transactions, acquire database locks, or persist history.
 
 Define lifecycle states and transitions:
 
@@ -102,7 +102,7 @@ Implement:
 
 **Exit criteria:** repeatable install/upgrade test, failed migration test, checksum mismatch test, and no silent data deletion.
 
-## Workstream E — Extension contracts
+## Workstream E — Extension contracts\n\n**Partial implementation:** standalone typed service lookup, ordered named hooks, and typed in-process events are available. The module lifecycle does not yet aggregate contributions into one immutable application registry.
 
 Start with the least magical, most testable extension types:
 
