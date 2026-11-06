@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    AppliedMigration, EventBus, HookContext, HookRegistry, LifecycleError,
+    EventBus, HookContext, HookRegistry, LifecycleError,
     MigrationCatalog, MigrationDescriptor, MigrationError, ServiceRegistry,
     ServiceRegistryBuilder,
 };
@@ -141,8 +141,5 @@ impl ExtensionRegistry {
     /// Return the immutable migration catalog contributed by registered modules.
     pub fn migrations(&self) -> &MigrationCatalog { &self.migrations }
 
-    /// Return a snapshot of applied migration metadata in the supplied history.
-    ///
-    /// This helper is intentionally absent; history is owned by the database backend.
     pub fn service_count(&self) -> usize { self.services.len() }
 }
