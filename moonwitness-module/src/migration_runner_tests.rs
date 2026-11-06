@@ -62,7 +62,7 @@ async fn runner_applies_in_plan_order_and_releases_lock() {
     assert_eq!(*backend.executed.lock().unwrap(), vec!["mw.core:base", "mw.audit:log"]);
     assert!(!*backend.locked.lock().unwrap());
     assert_eq!(backend.history.lock().unwrap().len(), 2);
-    assert_eq!(*backend.namespaces.lock().unwrap(), vec!["history:application", "apply:application", "apply:application", "release:application"]);
+    assert_eq!(*backend.namespaces.lock().unwrap(), vec!["history:application".to_owned(), "apply:application".to_owned(), "apply:application".to_owned(), "release:application".to_owned()]);
 }
 
 #[tokio::test]
