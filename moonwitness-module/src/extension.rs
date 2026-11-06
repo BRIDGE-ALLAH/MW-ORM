@@ -16,6 +16,7 @@ pub struct ExtensionRegistryBuilder {
     hooks: HookRegistry,
     events: EventBus,
     migrations: Vec<MigrationDescriptor>,
+    current_module: Option<String>,
 }
 
 impl ExtensionRegistryBuilder {
@@ -62,13 +63,29 @@ impl ExtensionRegistryBuilder {
         Ok(self)
     }
 
-    /// Register a module-owned migration descriptor.
+    /// Register a migration owned by the module currently contributing.
     pub fn register_migration(
         &mut self,
         migration: MigrationDescriptor,
-    ) -> &mut Self {
+    ) -> Result<&mut Self, LifecycleError> {
+        let Some(owner) = self.current_module.as_deref() else {
+            return Err(LifecycleError::new("migrations can only be registered during module contribution"));
+        };
+        if migration.module != owner {
+            return Err(LifecycleError::new(format!(
+                "module '{owner}' cannot register migration owned by '{}'", migration.module
+            )));
+        }
         self.migrations.push(migration);
-        self
+        Ok(self)
+    }
+
+    pub(crate) fn begin_module(&mut self, module: &str) {
+        self.current_module = Some(module.to_owned());
+    }
+
+    pub(crate) fn end_module(&mut self) {
+        self.current_module = None;
     }
 
     /// Freeze all contributions into an immutable extension registry.
