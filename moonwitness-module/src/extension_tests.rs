@@ -65,7 +65,12 @@ fn migration_plan_is_namespaced_ordered_and_checksum_checked() {
     let plan = catalog.plan(&["mw.core".into(), "mw.audit".into()], &[]).unwrap();
     assert_eq!(plan.pending().iter().map(|m| m.module.as_str()).collect::<Vec<_>>(),
         vec!["mw.core", "mw.audit"]);
-    let applied = [AppliedMigration { module: "mw.core".into(), id: "create_base".into(), version: 1, checksum: core.checksum.clone() }];
+    let applied = [AppliedMigration {
+        module: "mw.core".into(),
+        id: "create_base".into(),
+        version: 1,
+        checksum: core.checksum.clone(),
+    }];
     let pending = catalog.plan(&["mw.core".into(), "mw.audit".into()], &applied).unwrap();
     assert_eq!(pending.pending(), &[audit]);
 }
@@ -75,11 +80,29 @@ fn migration_catalog_rejects_checksum_drift_and_unknown_history() {
     let migration = MigrationDescriptor::new("mw.core", "base", 1, b"v1").unwrap();
     let catalog = MigrationCatalog::new(vec![migration.clone()]).unwrap();
     assert_eq!(migration.source(), b"v1");
-    let wrong_version = AppliedMigration { module: "mw.core".into(), id: "base".into(), version: 2, checksum: migration.checksum.clone() };
-    assert!(matches!(catalog.plan(&[], &[wrong_version]), Err(MigrationError::VersionMismatch { .. })));
-    let changed = AppliedMigration { module: "mw.core".into(), id: "base".into(), version: 1, checksum: "0".repeat(64) };
+    let wrong_version = AppliedMigration {
+        module: "mw.core".into(),
+        id: "base".into(),
+        version: 2,
+        checksum: migration.checksum.clone(),
+    };
+    assert!(matches!(
+        catalog.plan(&[], &[wrong_version]),
+        Err(MigrationError::VersionMismatch { .. })
+    ));
+    let changed = AppliedMigration {
+        module: "mw.core".into(),
+        id: "base".into(),
+        version: 1,
+        checksum: "0".repeat(64),
+    };
     assert!(matches!(catalog.plan(&[], &[changed]), Err(MigrationError::ChecksumMismatch { .. })));
-    let missing = AppliedMigration { module: "mw.legacy".into(), id: "old".into(), version: 1, checksum: "0".repeat(64) };
+    let missing = AppliedMigration {
+        module: "mw.legacy".into(),
+        id: "old".into(),
+        version: 1,
+        checksum: "0".repeat(64),
+    };
     assert!(matches!(catalog.plan(&[], &[missing]), Err(MigrationError::UnknownApplied { .. })));
 }
 
@@ -123,7 +146,12 @@ impl Module for ContributingModule {
     }
 
     fn prepare(&self, context: &ModuleContext) -> Result<(), LifecycleError> {
-        if context.service::<String>().as_deref().map(String::as_str) != Some("registered-before-start") {
+        if context
+            .service::<String>()
+            .as_deref()
+            .map(String::as_str)
+            != Some("registered-before-start")
+        {
             return Err(LifecycleError::new("contributed service is missing"));
         }
         let mut hook_context = HookContext::new();
