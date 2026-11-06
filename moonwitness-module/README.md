@@ -10,7 +10,7 @@ module composition for Rust applications.
 - Capability provider validation and deterministic dependency-first planning.
 - Static synchronous and asynchronous module registries with prepare/activate/deactivate lifecycle.
 - Best-effort activation rollback and reverse-order shutdown.
-- Module contribution phase that freezes services, hooks, event subscribers, and owner-validated migration descriptors into one immutable extension registry.
+- Module contribution phase that freezes services, hooks, event subscribers, and owner-validated migration descriptors into one immutable extension registry. Hooks, events, and migrations cannot be registered under another module's identity.
 - Typed, immutable service registry.
 - Deterministically ordered named hooks with fail-fast dispatch.
 - Typed in-process events with deterministic subscriber order.
