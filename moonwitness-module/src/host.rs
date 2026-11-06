@@ -33,6 +33,9 @@ impl ModuleContext {
     }
 
     /// Resolve a shared service by its concrete Rust type.
+    ///
+    /// Host-provided services take precedence over module-contributed services
+    /// of the same concrete type.
     pub fn service<T>(&self) -> Option<std::sync::Arc<T>>
     where
         T: std::any::Any + Send + Sync + 'static,
