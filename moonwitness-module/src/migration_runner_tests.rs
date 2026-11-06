@@ -28,7 +28,11 @@ impl MigrationBackend for FakeBackend {
         Ok(self.history.lock().unwrap().clone())
     }
 
-    async fn apply_and_record(&self, namespace: &str, migration: &MigrationDescriptor) -> Result<(), String> {
+    async fn apply_and_record(
+        &self,
+        namespace: &str,
+        migration: &MigrationDescriptor,
+    ) -> Result<(), String> {
         self.namespaces.lock().unwrap().push(format!("apply:{namespace}"));
         if self.fail_apply { return Err("simulated DDL failure".into()); }
         self.executed.lock().unwrap().push(migration.key());
@@ -62,7 +66,15 @@ async fn runner_applies_in_plan_order_and_releases_lock() {
     assert_eq!(*backend.executed.lock().unwrap(), vec!["mw.core:base", "mw.audit:log"]);
     assert!(!*backend.locked.lock().unwrap());
     assert_eq!(backend.history.lock().unwrap().len(), 2);
-    assert_eq!(*backend.namespaces.lock().unwrap(), vec!["history:application".to_owned(), "apply:application".to_owned(), "apply:application".to_owned(), "release:application".to_owned()]);
+    assert_eq!(
+        *backend.namespaces.lock().unwrap(),
+        vec![
+            "history:application".to_owned(),
+            "apply:application".to_owned(),
+            "apply:application".to_owned(),
+            "release:application".to_owned(),
+        ]
+    );
 }
 
 #[tokio::test]
