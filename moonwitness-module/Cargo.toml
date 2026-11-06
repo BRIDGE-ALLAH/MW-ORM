@@ -1,11 +1,11 @@
 [package]
-name = "moonwitness-module"
-version = "0.1.0"
 description = "Static, typed module kernel for the MoonWitness Rust data platform"
 edition = "2024"
-rust-version = "1.94.0"
 license = "MIT OR Apache-2.0"
+name = "moonwitness-module"
 repository = "https://github.com/BRIDGE-ALLAH/MW-ORM"
+rust-version = "1.94.0"
+version = "0.1.0"
 
 [dependencies]
 semver = { version = "1", features = ["serde"] }
