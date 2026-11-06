@@ -101,23 +101,17 @@ impl ModuleHost {
             let module = self.registry.modules.get(&name)
                 .expect("registry plan only contains registered modules");
             if let Err(error) = module.activate(&self.context) {
-                let mut rollback_failed = Vec::new();
+                let mut failed_modules = Vec::new();
+                let mut failures = Vec::new();
                 for active_name in self.active.iter().rev() {
                     if let Some(active_module) = self.registry.modules.get(active_name) {
                         if let Err(rollback_error) = active_module.deactivate(&self.context) {
-                            rollback_failed.push(active_name.clone());
-                            rollback_failed.push(format!("{active_name}: {rollback_error}"));
+                            failed_modules.push(active_name.clone());
+                            failures.push(format!("{active_name}: {rollback_error}"));
                         }
                     }
                 }
-                let failed_names: Vec<String> = rollback_failed.iter()
-                    .filter(|entry| !entry.contains(": "))
-                    .cloned()
-                    .collect();
-                self.active = failed_names.into_iter().rev().collect();
-                let failures: Vec<String> = rollback_failed.into_iter()
-                    .filter(|entry| entry.contains(": "))
-                    .collect();
+                self.active = failed_modules.into_iter().rev().collect();
                 let suffix = if failures.is_empty() {
                     String::new()
                 } else {
