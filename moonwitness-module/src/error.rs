@@ -75,6 +75,8 @@ pub struct LifecycleError {
 impl LifecycleError {
     /// Create a lifecycle error with a human-readable message.
     pub fn new(message: impl Into<String>) -> Self {
-        Self { message: message.into() }
+        Self {
+            message: message.into(),
+        }
     }
 }
