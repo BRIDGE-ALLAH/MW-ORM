@@ -15,7 +15,8 @@ module composition for Rust applications.
 - Deterministically ordered named hooks with fail-fast dispatch.
 - Typed in-process events with deterministic subscriber order.
 - Module-scoped migration descriptors, SHA-256 checksums, history validation,
-  and deterministic pending migration plans.\n- Async migration coordinator contract with namespace locking, sequential application, and lock cleanup.
+  and deterministic pending migration plans.
+- Async migration coordinator contract with namespace locking, sequential application, and lock cleanup.
 
 ## Minimal module
 
