@@ -52,8 +52,8 @@ fn resolver_orders_dependencies_before_dependents() {
     let registry = builder.build().expect("registry should resolve");
 
     assert_eq!(
-        registry.activation_plan().ordered_modules(),
-        &["mw.core".to_owned(), "mw.audit".to_owned()]
+        registry.activation_plan().ordered_modules().to_vec(),
+        vec!["mw.core".to_owned(), "mw.audit".to_owned()]
     );
 }
 
@@ -197,8 +197,8 @@ fn resolver_orders_required_capability_provider_first() {
     let registry = builder.build().expect("capability should resolve");
 
     assert_eq!(
-        registry.activation_plan().ordered_modules(),
-        &["mw.events".to_owned(), "mw.audit".to_owned()]
+        registry.activation_plan().ordered_modules().to_vec(),
+        vec!["mw.events".to_owned(), "mw.audit".to_owned()]
     );
 }
 
