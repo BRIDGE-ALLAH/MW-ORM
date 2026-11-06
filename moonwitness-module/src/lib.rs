@@ -12,6 +12,7 @@
 mod async_host;
 mod error;
 mod events;
+mod extension;
 mod hooks;
 mod host;
 mod manifest;
@@ -23,6 +24,7 @@ mod services;
 pub use async_host::{AsyncModule, AsyncModuleHost, AsyncModuleRegistry, AsyncModuleRegistryBuilder};
 pub use error::{KernelError, LifecycleError};
 pub use events::EventBus;
+pub use extension::{ExtensionRegistry, ExtensionRegistryBuilder};
 pub use hooks::{HookContext, HookRegistry};
 pub use host::{Module, ModuleContext, ModuleHost};
 pub use manifest::{ModuleDependency, ModuleManifest};
