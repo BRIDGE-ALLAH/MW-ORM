@@ -4,7 +4,7 @@ use semver::Version;
 
 use crate::{
     AppliedMigration, EventBus, HookContext, HookRegistry, MigrationCatalog,
-    ExtensionRegistryBuilder, LifecycleError, MigrationDescriptor, MigrationError, Module,
+    ExtensionRegistryBuilder, KernelError, LifecycleError, MigrationDescriptor, MigrationError, Module,
     ModuleContext, ModuleHost, ModuleManifest, ModuleRegistryBuilder, ServiceRegistryBuilder,
 };
 
@@ -160,4 +160,36 @@ fn modules_contribute_services_hooks_and_events_before_prepare() {
     assert!(prepared.load(Ordering::SeqCst));
     assert_eq!(events_seen.load(Ordering::SeqCst), 1);
     host.stop().unwrap();
+}
+
+struct ForeignMigrationModule {
+    manifest: ModuleManifest,
+}
+
+impl Module for ForeignMigrationModule {
+    fn manifest(&self) -> &ModuleManifest { &self.manifest }
+
+    fn contribute(&self, extensions: &mut ExtensionRegistryBuilder) -> Result<(), LifecycleError> {
+        let migration = MigrationDescriptor::new("mw.other", "foreign", 1, b"foreign")
+            .map_err(|error| LifecycleError::new(error.to_string()))?;
+        extensions.register_migration(migration)?;
+        Ok(())
+    }
+}
+
+#[test]
+fn module_cannot_register_migration_owned_by_another_module() {
+    let module = ForeignMigrationModule {
+        manifest: ModuleManifest {
+            name: "mw.owner".into(),
+            version: Version::new(1, 0, 0),
+            api_version: Version::new(1, 0, 0),
+            dependencies: Vec::new(),
+            provides: Vec::new(),
+            requires_capabilities: Vec::new(),
+        },
+    };
+    let mut builder = ModuleRegistryBuilder::new();
+    builder.register(module).unwrap();
+    assert!(matches!(builder.build(), Err(KernelError::Lifecycle(_))));
 }
