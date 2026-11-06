@@ -1,8 +1,8 @@
 use std::{
     collections::BTreeMap,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
     },
 };
 
@@ -53,8 +53,12 @@ fn resolver_orders_dependencies_before_dependents() {
     });
 
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(TestModule::new(core)).expect("register core");
-    builder.register(TestModule::new(audit)).expect("register audit");
+    builder
+        .register(TestModule::new(core))
+        .expect("register core");
+    builder
+        .register(TestModule::new(audit))
+        .expect("register audit");
     let registry = builder.build().expect("registry should resolve");
 
     assert_eq!(
@@ -72,7 +76,9 @@ fn resolver_rejects_missing_required_dependency() {
         optional: false,
     });
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(TestModule::new(audit)).expect("register audit");
+    builder
+        .register(TestModule::new(audit))
+        .expect("register audit");
 
     assert!(matches!(
         builder.build(),
@@ -90,8 +96,12 @@ fn resolver_rejects_incompatible_dependency() {
         optional: false,
     });
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(TestModule::new(core)).expect("register core");
-    builder.register(TestModule::new(audit)).expect("register audit");
+    builder
+        .register(TestModule::new(core))
+        .expect("register core");
+    builder
+        .register(TestModule::new(audit))
+        .expect("register audit");
 
     assert!(matches!(
         builder.build(),
@@ -114,8 +124,12 @@ fn resolver_rejects_cycles() {
         optional: false,
     });
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(TestModule::new(alpha)).expect("register alpha");
-    builder.register(TestModule::new(beta)).expect("register beta");
+    builder
+        .register(TestModule::new(alpha))
+        .expect("register alpha");
+    builder
+        .register(TestModule::new(beta))
+        .expect("register beta");
 
     assert!(matches!(
         builder.build(),
@@ -132,7 +146,9 @@ fn optional_missing_dependency_does_not_block_resolution() {
         optional: true,
     });
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(TestModule::new(audit)).expect("register audit");
+    builder
+        .register(TestModule::new(audit))
+        .expect("register audit");
     assert!(builder.build().is_ok());
 }
 
@@ -161,8 +177,17 @@ fn host_activates_in_order_and_stops_in_reverse() {
 
     assert_eq!(
         *calls.lock().expect("test mutex"),
-        vec!["prepare:mw.core", "prepare:mw.audit", "activate:mw.core", "activate:mw.audit", "deactivate:mw.audit", "deactivate:mw.core"]
-            .into_iter().map(String::from).collect::<Vec<_>>()
+        vec![
+            "prepare:mw.core",
+            "prepare:mw.audit",
+            "activate:mw.core",
+            "activate:mw.audit",
+            "deactivate:mw.audit",
+            "deactivate:mw.core"
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect::<Vec<_>>()
     );
 }
 
@@ -185,8 +210,17 @@ fn host_rolls_back_activated_modules_when_activation_fails() {
     assert!(host.active_modules().is_empty());
     assert_eq!(
         *calls.lock().expect("test mutex"),
-        vec!["prepare:mw.core", "prepare:mw.fail", "activate:mw.core", "activate:mw.fail", "deactivate:mw.fail", "deactivate:mw.core"]
-            .into_iter().map(String::from).collect::<Vec<_>>()
+        vec![
+            "prepare:mw.core",
+            "prepare:mw.fail",
+            "activate:mw.core",
+            "activate:mw.fail",
+            "deactivate:mw.fail",
+            "deactivate:mw.core"
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect::<Vec<_>>()
     );
 }
 
@@ -198,8 +232,12 @@ fn resolver_orders_required_capability_provider_first() {
     events.provides.push("audit.events".into());
 
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(TestModule::new(audit)).expect("register audit");
-    builder.register(TestModule::new(events)).expect("register events");
+    builder
+        .register(TestModule::new(audit))
+        .expect("register audit");
+    builder
+        .register(TestModule::new(events))
+        .expect("register events");
     let registry = builder.build().expect("capability should resolve");
 
     assert_eq!(
@@ -213,7 +251,9 @@ fn resolver_rejects_missing_capability() {
     let mut audit = manifest("mw.audit", "0.1.0");
     audit.requires_capabilities.push("audit.events".into());
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(TestModule::new(audit)).expect("register audit");
+    builder
+        .register(TestModule::new(audit))
+        .expect("register audit");
 
     assert!(matches!(
         builder.build(),
@@ -224,7 +264,9 @@ fn resolver_rejects_missing_capability() {
 #[test]
 fn registry_rejects_duplicate_module_identifiers() {
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(TestModule::new(manifest("mw.audit", "0.1.0"))).expect("first registration");
+    builder
+        .register(TestModule::new(manifest("mw.audit", "0.1.0")))
+        .expect("first registration");
     assert!(matches!(
         builder.register(TestModule::new(manifest("mw.audit", "0.2.0"))),
         Err(KernelError::DuplicateModule(_))
@@ -249,7 +291,10 @@ impl TestModule {
     }
 
     fn record(&self, action: &str) {
-        self.calls.lock().expect("test mutex").push(format!("{action}:{}", self.manifest.name));
+        self.calls
+            .lock()
+            .expect("test mutex")
+            .push(format!("{action}:{}", self.manifest.name));
     }
 }
 
@@ -282,7 +327,6 @@ impl Module for TestModule {
     }
 }
 
-
 #[test]
 fn host_retains_modules_when_shutdown_fails_and_allows_retry() {
     let mut core = TestModule::new(manifest("mw.core", "1.0.0"));
@@ -311,7 +355,9 @@ fn host_retains_partially_activated_module_when_rollback_fails() {
     failing.fail_deactivation_once.store(true, Ordering::SeqCst);
 
     let mut builder = ModuleRegistryBuilder::new();
-    builder.register(failing).expect("register partially failing module");
+    builder
+        .register(failing)
+        .expect("register partially failing module");
     let registry = builder.build().expect("build registry");
     let mut host = ModuleHost::new(registry, ModuleContext::default());
 
