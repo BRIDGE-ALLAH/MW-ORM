@@ -1,18 +1,18 @@
 use std::collections::BTreeMap;
 
-use crate::{LifecycleError, ModuleManifest, ModuleRegistry, ServiceRegistry};
+use crate::{ExtensionRegistry, ExtensionRegistryBuilder, LifecycleError, ModuleManifest, ModuleRegistry};
 
 /// Read-only configuration and host services exposed to modules.
 #[derive(Clone, Debug, Default)]
 pub struct ModuleContext {
     configuration: BTreeMap<String, String>,
-    services: ServiceRegistry,
+    extensions: ExtensionRegistry,
 }
 
 impl ModuleContext {
     /// Create a context from string key/value configuration.
     pub fn new(configuration: BTreeMap<String, String>) -> Self {
-        Self { configuration, services: ServiceRegistry::default() }
+        Self { configuration, extensions: ExtensionRegistry::default() }
     }
 
     /// Create a context with a prebuilt, immutable service registry.
@@ -33,7 +33,7 @@ impl ModuleContext {
     where
         T: std::any::Any + Send + Sync + 'static,
     {
-        self.services.get::<T>()
+        self.extensions.service::<T>()
     }
 }
 
@@ -68,7 +68,7 @@ pub struct ModuleHost {
 impl ModuleHost {
     /// Create a host for a validated registry.
     pub fn new(registry: ModuleRegistry, context: ModuleContext) -> Self {
-        Self { registry, context, active: Vec::new() }
+        let mut context = context;\n        context.extensions = registry.extensions.clone();\n        Self { registry, context, active: Vec::new() }
     }
 
     /// Return identifiers of modules considered active by the host.
