@@ -28,7 +28,7 @@ pub use events::EventBus;
 pub use extension::{ExtensionRegistry, ExtensionRegistryBuilder};
 pub use hooks::{HookContext, HookRegistry};
 pub use host::{Module, ModuleContext, ModuleHost};
-pub use manifest::{ModuleDependency, ModuleManifest};
+pub use manifest::{MODULE_API_VERSION, ModuleDependency, ModuleManifest};
 pub use migration::{
     AppliedMigration, MigrationCatalog, MigrationDescriptor, MigrationError, MigrationPlan,
 };
