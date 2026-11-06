@@ -83,7 +83,7 @@ Start with Rust-defined descriptors or a small validated manifest format. Avoid 
 
 ## Workstream D — Lifecycle and migrations
 
-**Partial implementation:** the kernel now creates namespaced migration descriptors, calculates SHA-256 checksums, detects duplicate ids/versions, rejects missing historical migrations and checksum drift, and creates deterministic pending plans. It does not execute migrations, manage transactions, acquire database locks, or persist history.
+**Partial implementation:** the kernel now creates namespaced migration descriptors, calculates SHA-256 checksums, detects duplicate ids/versions, rejects missing historical migrations and checksum drift, and creates deterministic pending plans. The generic async `MigrationRunner` now coordinates backend lock acquisition, history validation, ordered apply-and-record calls, and lock release. The actual database backend must still implement SQL execution, real locks, transactions, and persistent history.
 
 Define lifecycle states and transitions:
 
