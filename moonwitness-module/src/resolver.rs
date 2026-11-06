@@ -62,10 +62,12 @@ pub(crate) fn resolve(
 
         for capability in &manifest.requires_capabilities {
             match providers.get(capability) {
-                None => return Err(KernelError::MissingCapability {
-                    module: name.clone(),
-                    capability: capability.clone(),
-                }),
+                None => {
+                    return Err(KernelError::MissingCapability {
+                        module: name.clone(),
+                        capability: capability.clone(),
+                    });
+                }
                 Some(found) if found.len() > 1 => {
                     return Err(KernelError::AmbiguousCapability {
                         capability: capability.clone(),
