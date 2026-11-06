@@ -9,6 +9,9 @@ pub enum KernelError {
     /// A module identifier is already registered.
     #[error("module '{0}' is registered more than once")]
     DuplicateModule(String),
+    /// A module requires an API version not supported by this kernel.
+    #[error("module '{module}' targets API {required}, but this kernel supports {supported}")]
+    UnsupportedApiVersion { module: String, required: String, supported: String },
     /// A module manifest contains inconsistent declarations.
     #[error("invalid manifest for module '{module}': {reason}")]
     InvalidManifest { module: String, reason: String },

@@ -3,6 +3,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::KernelError;
 
+/// Semantic version of the module API implemented by this kernel.
+pub const MODULE_API_VERSION: &str = "1.0.0";
+
 /// A required or optional dependency on another module.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ModuleDependency {
@@ -39,6 +42,15 @@ impl ModuleManifest {
     /// Validate identifiers and reject duplicate or self-referential declarations.
     pub fn validate(&self) -> Result<(), KernelError> {
         validate_name(&self.name)?;
+        let supported_api = Version::parse(MODULE_API_VERSION)
+            .expect("the kernel module API version is a valid semver constant");
+        if self.api_version.major != supported_api.major || self.api_version > supported_api {
+            return Err(KernelError::UnsupportedApiVersion {
+                module: self.name.clone(),
+                required: self.api_version.to_string(),
+                supported: supported_api.to_string(),
+            });
+        }
         let mut dependencies = std::collections::BTreeSet::new();
         for dependency in &self.dependencies {
             validate_name(&dependency.name)?;
@@ -75,7 +87,12 @@ fn validate_name(name: &str) -> Result<(), KernelError> {
         && name.split('.').all(|part| {
             !part.is_empty()
                 && part.as_bytes()[0].is_ascii_lowercase()
-                && part.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_')
+                && part.bytes().all(|byte| {
+                    byte.is_ascii_lowercase()
+                        || byte.is_ascii_digit()
+                        || byte == b'-'
+                        || byte == b'_'
+                })
         });
     if valid {
         Ok(())
@@ -87,10 +104,10 @@ fn validate_name(name: &str) -> Result<(), KernelError> {
 fn validate_unique_names(module: &str, label: &str, values: &[String]) -> Result<(), KernelError> {
     let mut seen = std::collections::BTreeSet::new();
     for value in values {
-        if value.trim().is_empty() || !seen.insert(value) {
+        if validate_name(value).is_err() || !seen.insert(value) {
             return Err(KernelError::InvalidManifest {
                 module: module.to_owned(),
-                reason: format!("{label} '{value}' is empty or duplicated"),
+                reason: format!("{label} '{value}' is malformed or duplicated"),
             });
         }
     }

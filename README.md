@@ -104,7 +104,7 @@ The manifest format is a proposal and may change before implementation.
 
 ## Technology foundation
 
-MoonWitness begins its independent evolution from the existing SeaORM 2.0 codebase in this repository. The current workspace includes the main ORM crate and companion crates for macros, code generation, and Arrow integration. The existing implementation uses Rust, SeaQuery, SQLx-related adapters, and other established Rust ecosystem components.
+MoonWitness begins its independent evolution from the existing SeaORM 2.0 codebase in this repository. The current workspace includes the main ORM crate and companion crates for macros, code generation, and Arrow integration. The experimental module runtime is available as an optional dependency through the ORM crate's `module-runtime` feature and is re-exported as `sea_orm::modules`. The existing implementation uses Rust, SeaQuery, SQLx-related adapters, and other established Rust ecosystem components.
 
 The project will preserve useful upstream functionality while progressively developing its own module contracts, APIs, package identity, and tooling. The current source still contains upstream SeaORM package names and references; crate renaming and architectural extraction are planned work, not completed work.
 
@@ -118,7 +118,7 @@ MoonWitness ORM is the reusable relational and modular-extension foundation. MW-
 
 ## Current status
 
-**Independent evolution / early implementation.**
+**Independent evolution / experimental implementation.**
 
 - [x] Direction selected: Independent Evolution
 - [x] Modular platform architecture proposed
@@ -126,11 +126,15 @@ MoonWitness ORM is the reusable relational and modular-extension foundation. MW-
 - [ ] Repository-wide upstream and license audit
 - [ ] Baseline CI and compatibility inventory
 - [x] Initial module manifest, registry, dependency resolver, and lifecycle prototype (`moonwitness-module`)
-- [ ] Async lifecycle, migration coordination, and ORM integration
-- [ ] First reference add-on
+- [x] Hook, event, service, and migration-planning contracts in the experimental kernel
+- [x] Synchronous and async lifecycle plus unified typed extension contributions
+- [x] Generic migration coordinator contract and resumable ordered runner
+- [x] Optional `module-runtime` feature re-exported as `sea_orm::modules`
+- [ ] Database-specific migration backend and automatic ORM write integration
+- [x] In-memory audit reference add-on (`moonwitness-addon-audit`); persistence and ORM write integration remain open
 - [ ] MoonWitness crate namespace transition
 
-The `moonwitness-module` crate is an experimental first kernel implementation with unit tests for manifest parsing, dependency ordering, compatibility, cycle detection, and lifecycle rollback. It is not yet a production-ready module platform; migration coordination, async lifecycle, ORM integration, extension contracts, security review, and end-to-end CI remain open.
+The `moonwitness-module` crate is an experimental kernel with synchronous and asynchronous lifecycle hosts, deterministic module resolution, module-contributed typed services/hooks/events, and module-owned migration planning with checksum validation. The ORM exposes the kernel behind the opt-in `module-runtime` feature. The workspace also contains `moonwitness-addon-audit`, an in-memory reference add-on that consumes typed record-change events. It is not yet production-ready; database-specific migration backend, automatic ORM write integration, tenant-security enforcement, upstream compatibility audit, and end-to-end release validation remain open.
 
 ## Roadmap
 

@@ -8,9 +8,12 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/BRIDGE-ALLAH/MW-ORM"
 
 [dependencies]
+async-trait = "0.1"
 semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
 thiserror = "2"
 toml = "0.8"
 
 [dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }

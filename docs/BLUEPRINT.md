@@ -6,7 +6,7 @@
 
 A Rust application can compose a set of independently versioned modules and add-ons. MoonWitness validates their compatibility, resolves their dependency graph, registers their contributions, coordinates migrations, and starts the application in a deterministic and diagnosable way.
 
-The standalone ORM remains independently usable.
+The standalone ORM remains independently usable. The root ORM crate now offers an optional `module-runtime` feature that re-exports the kernel as `sea_orm::modules`.
 
 ## Workstream A — Repository and upstream foundation
 
@@ -43,7 +43,7 @@ The standalone ORM remains independently usable.
 
 ## Workstream C — Module kernel MVP
 
-**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, capability provider resolution, deterministic activation plans, a static registry, synchronous lifecycle hooks, reverse-order shutdown, and best-effort rollback after activation failure. It is a prototype, not a stable public API.
+**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, kernel API compatibility validation, capability provider resolution, deterministic activation plans, a static registry, synchronous and asynchronous lifecycle, typed service lookup, owner-validated ordered hooks and typed in-process events, and versioned SHA-256 migration descriptors retaining source bytes with checksum-validated planning. It is a prototype, not a stable public API. Database migration execution and ORM-specific adapters are still not implemented. Both synchronous and asynchronous lifecycle hosts now collect module contributions into a single immutable extension registry.
 
 Build the first kernel as an optional crate, tentatively `moonwitness-module`.
 
@@ -83,6 +83,8 @@ Start with Rust-defined descriptors or a small validated manifest format. Avoid 
 
 ## Workstream D — Lifecycle and migrations
 
+**Partial implementation:** the kernel now creates namespaced migration descriptors, calculates SHA-256 checksums, detects duplicate ids/versions, rejects missing historical migrations and checksum drift, and creates deterministic pending plans. The generic async `MigrationRunner` now coordinates backend lock acquisition, history validation, ordered apply-and-record calls, and lock release. The actual database backend must still implement SQL execution, real locks, transactions, and persistent history.
+
 Define lifecycle states and transitions:
 
 `Discovered -> Validated -> Planned -> Prepared -> Migrated -> Active`
@@ -103,6 +105,8 @@ Implement:
 **Exit criteria:** repeatable install/upgrade test, failed migration test, checksum mismatch test, and no silent data deletion.
 
 ## Workstream E — Extension contracts
+
+**Initial implementation:** modules can contribute typed services, ordered hooks, and typed in-process event handlers during registry construction. Contributions are frozen in dependency order and exposed through the lifecycle context. Delivery is synchronous and in-process only.
 
 Start with the least magical, most testable extension types:
 
@@ -125,6 +129,8 @@ Every extension contract needs:
 
 ## Workstream F — First reference add-ons
 
+**Initial example delivered:** `moonwitness-addon-audit` demonstrates registering an audit store service and subscribing to typed record-change events. It is intentionally in-memory and does not automatically intercept ORM writes; durable storage and transaction-after-commit integration remain open.
+
 Choose one low-risk add-on first. Recommended sequence:
 
 1. **Audit metadata** — explicit audit context and event records; carefully define actor and data capture.
@@ -137,6 +143,8 @@ Do not start with tenant isolation as the first add-on: it affects every query p
 **Exit criteria:** add-on has its own package, tests, documentation, compatibility declaration, and example host application.
 
 ## Workstream G — MW-BAAS integration boundary
+
+**Integration draft opened:** [MW-BAAS PR #2](https://github.com/BRIDGE-ALLAH/MW-BAAS/pull/2) adds an opt-in Loco initializer, injects the SeaORM connection as a typed module service, and wires shutdown. It currently depends on the MW-ORM kernel branch in [PR #3](https://github.com/BRIDGE-ALLAH/MW-ORM/pull/3); both changes remain unmerged and require CI validation.
 
 - Define the exact dependency direction: MW-BAAS consumes MoonWitness; MoonWitness must not depend on MW-BAAS.
 - Publish versioned contracts for module registration, lifecycle participation, migrations, and shared data capabilities.

@@ -1,0 +1,12 @@
+[package]
+name = "moonwitness-addon-audit"
+version = "0.1.0"
+description = "Reference in-process audit add-on for MoonWitness modules"
+edition = "2024"
+rust-version = "1.94.0"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/BRIDGE-ALLAH/MW-ORM"
+
+[dependencies]
+moonwitness-module = { path = "../moonwitness-module" }
+semver = "1"
