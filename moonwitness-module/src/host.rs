@@ -1,12 +1,15 @@
 use std::collections::BTreeMap;
 
-use crate::{ExtensionRegistry, ExtensionRegistryBuilder, LifecycleError, ModuleManifest, ModuleRegistry};
+use crate::{
+    ExtensionRegistry, ExtensionRegistryBuilder, LifecycleError, ModuleManifest,
+    ModuleRegistry, ServiceRegistry,
+};
 
 /// Read-only configuration and host services exposed to modules.
 #[derive(Clone, Debug, Default)]
 pub struct ModuleContext {
     configuration: BTreeMap<String, String>,
-    extensions: ExtensionRegistry,
+    pub(crate) extensions: ExtensionRegistry,
 }
 
 impl ModuleContext {
@@ -20,7 +23,7 @@ impl ModuleContext {
         configuration: BTreeMap<String, String>,
         services: ServiceRegistry,
     ) -> Self {
-        Self { configuration, services }
+        Self { configuration, extensions: ExtensionRegistry::from_services(services) }
     }
 
     /// Read a configuration value.
@@ -35,12 +38,34 @@ impl ModuleContext {
     {
         self.extensions.service::<T>()
     }
+
+    /// Dispatch a hook contributed by a registered module.
+    pub fn dispatch_hook(
+        &self,
+        name: &str,
+        hook_context: &mut crate::HookContext,
+    ) -> Result<usize, LifecycleError> {
+        self.extensions.dispatch_hook(name, hook_context)
+    }
+
+    /// Publish an event to registered in-process subscribers.
+    pub fn publish_event<E>(&self, event: &E) -> Result<usize, LifecycleError>
+    where
+        E: Send + Sync + 'static,
+    {
+        self.extensions.publish_event(event)
+    }
 }
 
 /// A statically linked module and its lifecycle contract.
 pub trait Module: Send + Sync {
     /// Return the module's immutable descriptor.
     fn manifest(&self) -> &ModuleManifest;
+
+    /// Register services, hooks, and event subscribers before the registry is frozen.
+    fn contribute(&self, _extensions: &mut ExtensionRegistryBuilder) -> Result<(), LifecycleError> {
+        Ok(())
+    }
 
     /// Validate readiness without performing irreversible side effects.
     fn prepare(&self, _context: &ModuleContext) -> Result<(), LifecycleError> {
@@ -66,18 +91,18 @@ pub struct ModuleHost {
 }
 
 impl ModuleHost {
-    /// Create a host for a validated registry.
+    /// Create a host and attach the registry's immutable contributions to its context.
     pub fn new(registry: ModuleRegistry, context: ModuleContext) -> Self {
-        let mut context = context;\n        context.extensions = registry.extensions.clone();\n        Self { registry, context, active: Vec::new() }
+        let mut context = context;
+        context.extensions = registry.extensions.clone();
+        Self { registry, context, active: Vec::new() }
     }
 
     /// Return identifiers of modules considered active by the host.
     ///
     /// Modules whose deactivation failed remain in this list so callers can
     /// inspect the incomplete shutdown and retry it.
-    pub fn active_modules(&self) -> &[String] {
-        &self.active
-    }
+    pub fn active_modules(&self) -> &[String] { &self.active }
 
     /// Prepare and activate modules in deterministic dependency order.
     ///
@@ -88,7 +113,6 @@ impl ModuleHost {
         if !self.active.is_empty() {
             return Err(LifecycleError::new("module host is already started or requires shutdown retry"));
         }
-
         let plan = self.registry.activation_plan().ordered_modules().to_vec();
         for name in &plan {
             let module = self.registry.modules.get(name)
@@ -96,7 +120,6 @@ impl ModuleHost {
             module.prepare(&self.context)
                 .map_err(|error| LifecycleError::new(format!("module '{name}' failed to prepare: {error}")))?;
         }
-
         for name in plan {
             let module = self.registry.modules.get(&name)
                 .expect("registry plan only contains registered modules");
@@ -126,10 +149,7 @@ impl ModuleHost {
         Ok(())
     }
 
-    /// Deactivate active modules in reverse activation order.
-    ///
-    /// Every module is given a chance to stop. Modules that fail to deactivate
-    /// remain marked active so shutdown can be retried.
+    /// Deactivate active modules in reverse activation order, retaining failures for retry.
     pub fn stop(&mut self) -> Result<(), LifecycleError> {
         let mut failed = Vec::new();
         for name in self.active.iter().rev() {
