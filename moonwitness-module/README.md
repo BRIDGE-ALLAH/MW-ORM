@@ -18,6 +18,54 @@ module composition for Rust applications.
   and deterministic pending migration plans.
 - Async migration coordinator contract with namespace locking, sequential application, and lock cleanup.
 
+## Quick start
+
+Register statically linked modules, validate their dependency graph, then start
+the host. The same registry and lifecycle model is available asynchronously
+through `AsyncModule`, `AsyncModuleRegistryBuilder`, and `AsyncModuleHost`.
+
+```rust
+use semver::Version;
+use moonwitness_module::{
+    LifecycleError, Module, ModuleContext, ModuleHost, ModuleManifest,
+    ModuleRegistryBuilder,
+};
+
+struct CoreModule {
+    manifest: ModuleManifest,
+}
+
+impl Module for CoreModule {
+    fn manifest(&self) -> &ModuleManifest {
+        &self.manifest
+    }
+
+    fn activate(&self, _context: &ModuleContext) -> Result<(), LifecycleError> {
+        println!("MoonWitness core is active");
+        Ok(())
+    }
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut registry = ModuleRegistryBuilder::new();
+    registry.register(CoreModule {
+        manifest: ModuleManifest {
+            name: "mw.core".into(),
+            version: Version::new(0, 1, 0),
+            api_version: Version::new(1, 0, 0),
+            dependencies: Vec::new(),
+            provides: vec!["core.runtime".into()],
+            requires_capabilities: Vec::new(),
+        },
+    })?;
+
+    let mut host = ModuleHost::new(registry.build()?, ModuleContext::default());
+    host.start()?;
+    host.stop()?;
+    Ok(())
+}
+```
+
 ## Minimal module
 
 ```rust
