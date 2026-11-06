@@ -98,7 +98,7 @@ fn validate_unique_names(module: &str, label: &str, values: &[String]) -> Result
         if validate_name(value).is_err() || !seen.insert(value) {
             return Err(KernelError::InvalidManifest {
                 module: module.to_owned(),
-                reason: format!("{label} '{value}' is empty or duplicated"),
+                reason: format!("{label} '{value}' is malformed or duplicated"),
             });
         }
     }
