@@ -9,13 +9,14 @@ use crate::{
 #[derive(Clone, Debug, Default)]
 pub struct ModuleContext {
     configuration: BTreeMap<String, String>,
+    services: ServiceRegistry,
     pub(crate) extensions: ExtensionRegistry,
 }
 
 impl ModuleContext {
     /// Create a context from string key/value configuration.
     pub fn new(configuration: BTreeMap<String, String>) -> Self {
-        Self { configuration, extensions: ExtensionRegistry::default() }
+        Self { configuration, services: ServiceRegistry::default(), extensions: ExtensionRegistry::default() }
     }
 
     /// Create a context with a prebuilt, immutable service registry.
@@ -23,7 +24,7 @@ impl ModuleContext {
         configuration: BTreeMap<String, String>,
         services: ServiceRegistry,
     ) -> Self {
-        Self { configuration, extensions: ExtensionRegistry::from_services(services) }
+        Self { configuration, services, extensions: ExtensionRegistry::default() }
     }
 
     /// Read a configuration value.
@@ -36,7 +37,7 @@ impl ModuleContext {
     where
         T: std::any::Any + Send + Sync + 'static,
     {
-        self.extensions.service::<T>()
+        self.services.get::<T>().or_else(|| self.extensions.service::<T>())
     }
 
     /// Dispatch a hook contributed by a registered module.
