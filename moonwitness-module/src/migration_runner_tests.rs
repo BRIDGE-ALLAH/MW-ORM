@@ -10,6 +10,7 @@ struct FakeBackend {
     locked: Mutex<bool>,
     history: Mutex<Vec<AppliedMigration>>,
     executed: Mutex<Vec<String>>,
+    namespaces: Mutex<Vec<String>>,
     fail_apply: bool,
 }
 
@@ -22,11 +23,13 @@ impl MigrationBackend for FakeBackend {
         Ok(())
     }
 
-    async fn load_history(&self, _namespace: &str) -> Result<Vec<AppliedMigration>, String> {
+    async fn load_history(&self, namespace: &str) -> Result<Vec<AppliedMigration>, String> {
+        self.namespaces.lock().unwrap().push(format!("history:{namespace}"));
         Ok(self.history.lock().unwrap().clone())
     }
 
-    async fn apply_and_record(&self, _namespace: &str, migration: &MigrationDescriptor) -> Result<(), String> {
+    async fn apply_and_record(&self, namespace: &str, migration: &MigrationDescriptor) -> Result<(), String> {
+        self.namespaces.lock().unwrap().push(format!("apply:{namespace}"));
         if self.fail_apply { return Err("simulated DDL failure".into()); }
         self.executed.lock().unwrap().push(migration.key());
         self.history.lock().unwrap().push(AppliedMigration {
@@ -38,7 +41,8 @@ impl MigrationBackend for FakeBackend {
         Ok(())
     }
 
-    async fn release_lock(&self, _namespace: &str) -> Result<(), String> {
+    async fn release_lock(&self, namespace: &str) -> Result<(), String> {
+        self.namespaces.lock().unwrap().push(format!("release:{namespace}"));
         *self.locked.lock().unwrap() = false;
         Ok(())
     }
@@ -58,6 +62,7 @@ async fn runner_applies_in_plan_order_and_releases_lock() {
     assert_eq!(*backend.executed.lock().unwrap(), vec!["mw.core:base", "mw.audit:log"]);
     assert!(!*backend.locked.lock().unwrap());
     assert_eq!(backend.history.lock().unwrap().len(), 2);
+    assert_eq!(*backend.namespaces.lock().unwrap(), vec!["history:application", "apply:application", "apply:application", "release:application"]);
 }
 
 #[tokio::test]
