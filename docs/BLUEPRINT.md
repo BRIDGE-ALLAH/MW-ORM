@@ -6,7 +6,7 @@
 
 A Rust application can compose a set of independently versioned modules and add-ons. MoonWitness validates their compatibility, resolves their dependency graph, registers their contributions, coordinates migrations, and starts the application in a deterministic and diagnosable way.
 
-The standalone ORM remains independently usable.
+The standalone ORM remains independently usable. The root ORM crate now offers an optional `module-runtime` feature that re-exports the kernel as `sea_orm::modules`.
 
 ## Workstream A — Repository and upstream foundation
 
