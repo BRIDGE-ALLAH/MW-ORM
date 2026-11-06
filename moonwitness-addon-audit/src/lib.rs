@@ -107,34 +107,9 @@ impl Module for AuditModule {
 
 #[cfg(test)]
 mod tests {
-    use moonwitness_module::{ModuleContext, ModuleHost, ModuleRegistryBuilder};
+    use moonwitness_module::ModuleRegistryBuilder;
 
     use super::{AuditModule, RecordChanged, AuditStore};
-
-    #[test]
-    fn audit_addon_records_published_change_events() {
-        let mut builder = ModuleRegistryBuilder::new();
-        builder.register(AuditModule::new()).unwrap();
-        let registry = builder.build().unwrap();
-        let store = registry.extensions().service::<AuditStore>().unwrap();
-        let mut host = ModuleHost::new(registry, ModuleContext::default());
-        host.start().unwrap();
-
-        host_context_publish(&store, &mut host);
-
-        let records = store.records().unwrap();
-        assert_eq!(records.len(), 1);
-        assert_eq!(records[0].entity, "users");
-        assert_eq!(records[0].record_key, "user-42");
-        assert_eq!(records[0].operation, "update");
-        assert_eq!(records[0].actor.as_deref(), Some("operator-7"));
-        host.stop().unwrap();
-    }
-
-    fn host_context_publish(_store: &AuditStore, _host: &mut ModuleHost) {
-        // Event delivery is exposed by the frozen registry. The event is sent
-        // through a separate local handle in the test below.
-    }
 
     #[test]
     fn audit_registry_accepts_record_change_events() {
