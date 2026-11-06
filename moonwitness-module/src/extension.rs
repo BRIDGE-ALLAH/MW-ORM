@@ -73,7 +73,9 @@ impl ExtensionRegistryBuilder {
         migration: MigrationDescriptor,
     ) -> Result<&mut Self, LifecycleError> {
         let Some(owner) = self.current_module.as_deref() else {
-            return Err(LifecycleError::new("migrations can only be registered during module contribution"));
+            return Err(LifecycleError::new(
+                "migrations can only be registered during module contribution",
+            ));
         };
         if migration.module.as_str() != owner {
             return Err(LifecycleError::new(format!(
@@ -86,7 +88,9 @@ impl ExtensionRegistryBuilder {
 
     fn ensure_owner(&self, declared: &str) -> Result<(), LifecycleError> {
         let Some(owner) = self.current_module.as_deref() else {
-            return Err(LifecycleError::new("hooks and events can only be registered during module contribution"));
+            return Err(LifecycleError::new(
+                "hooks and events can only be registered during module contribution",
+            ));
         };
         if declared != owner {
             return Err(LifecycleError::new(format!(
