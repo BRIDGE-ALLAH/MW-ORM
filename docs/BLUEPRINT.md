@@ -43,9 +43,13 @@ The standalone ORM remains independently usable.
 
 ## Workstream C — Module kernel MVP
 
+**Status: initial experimental implementation landed in `moonwitness-module`.** The current crate includes typed manifests, TOML parsing, required/optional dependencies, semver checks, capability provider resolution, deterministic activation plans, a static registry, synchronous lifecycle hooks, reverse-order shutdown, and best-effort rollback after activation failure. It is a prototype, not a stable public API.
+
 Build the first kernel as an optional crate, tentatively `moonwitness-module`.
 
-### C1. Module descriptor
+### C1. Module descriptor — initial implementation
+
+Implemented as `ModuleManifest` and `ModuleDependency`; TOML parsing and basic validation are available. The manifest/API compatibility policy still needs formalization.
 Initial fields:
 - module identifier;
 - semantic version;
@@ -56,21 +60,21 @@ Initial fields:
 
 Start with Rust-defined descriptors or a small validated manifest format. Avoid supporting multiple competing formats.
 
-### C2. Registry builder
+### C2. Registry builder — initial implementation
 - Register modules by stable identifier.
 - Reject duplicate identifiers.
 - Register entities and service contracts.
 - Detect duplicate contribution names.
 - Freeze a validated registry before application activation.
 
-### C3. Dependency resolver
+### C3. Dependency resolver — initial implementation
 - Build a directed graph.
 - Validate required dependencies and version ranges.
 - Detect cycles with actionable diagnostics.
 - Resolve optional dependencies deterministically.
 - Return an ordered activation plan.
 
-### C4. Static module loading
+### C4. Static module loading and lifecycle — initial implementation
 - Modules are linked into the host binary.
 - No arbitrary runtime code loading.
 - Provide a simple application builder that receives module instances.
@@ -220,7 +224,7 @@ No dates are assigned until the baseline audit establishes project capacity.
 1. Complete source and workspace audit.
 2. Map current crate boundaries and public API.
 3. Establish baseline CI results.
-4. Prototype module descriptor and dependency resolver outside the ORM core.
+4. Extend the `moonwitness-module` prototype with async lifecycle and ORM-facing contracts outside the ORM core.
 5. Review prototype ergonomics before committing to public traits.
 6. Build one reference add-on and prove lifecycle/migration behavior.
 
