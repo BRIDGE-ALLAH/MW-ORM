@@ -1,42 +1,75 @@
 # moonwitness-module
 
-The first MoonWitness module-kernel crate. It is a small, statically linked module host that is independent of the existing ORM crate.
+The experimental MoonWitness module kernel provides typed, statically linked
+module composition for Rust applications.
 
-## Current MVP
+## Current capabilities
 
-- Typed module descriptors with semantic versions and TOML parsing.
-- Manifest validation and duplicate registration checks.
-- Required and optional module dependencies.
-- Semantic-version compatibility checks.
-- Capability provider resolution with missing/ambiguous-provider diagnostics.
-- Deterministic dependency-first activation plans.
-- A static Rust `Module` contract and immutable registry.
-- Prepare/activate/deactivate lifecycle hooks.
-- Reverse-order shutdown and best-effort rollback after activation failure.
+- TOML module manifests with semantic versions and dependency declarations.
+- Required and optional module dependency validation.
+- Capability provider validation and deterministic dependency-first planning.
+- A static module registry and synchronous prepare/activate/deactivate lifecycle.
+- Best-effort activation rollback and reverse-order shutdown.
+- Typed, immutable service registry.
+- Deterministically ordered named hooks with fail-fast dispatch.
+- Typed in-process events with deterministic subscriber order.
+- Module-scoped migration descriptors, SHA-256 checksums, history validation,
+  and deterministic pending migration plans.
 
-## Example manifest
+## Minimal module
 
-```toml
-name = "mw.audit"
-version = "0.1.0"
-api_version = "1.0.0"
-provides = ["audit.events"]
+```rust
+use moonwitness_module::{LifecycleError, Module, ModuleContext, ModuleManifest};
 
-[[dependencies]]
-name = "mw.core"
-version = "^1.0"
-optional = false
+struct CoreModule {
+    manifest: ModuleManifest,
+}
+
+impl Module for CoreModule {
+    fn manifest(&self) -> &ModuleManifest {
+        &self.manifest
+    }
+
+    fn prepare(&self, _context: &ModuleContext) -> Result<(), LifecycleError> {
+        Ok(())
+    }
+}
 ```
 
-## Design boundaries
+## Extension contracts
 
-This crate intentionally does not load arbitrary native dynamic libraries, execute database migrations, mutate ORM entities, or provide a service container. Those concerns require separate security, compatibility, and transaction designs. Modules are statically linked Rust values in this MVP.
+Hooks are named, ordered callbacks. A hook handler receives a mutable
+`HookContext`; handlers run by ascending priority, then module and handler id.
+Dispatch stops on the first error.
 
-## Use in the workspace
+Events are Rust-type-based and delivered synchronously. Subscriber order is
+stable by module and handler id. The event bus is in-process only: it is not a
+durable queue and makes no retry or exactly-once delivery guarantee.
 
-```toml
-[dependencies]
-moonwitness-module = { path = "../moonwitness-module" }
-```
+Services are registered once per concrete Rust type and exposed through an
+immutable registry of shared `Arc` instances.
 
-The crate is an early kernel foundation, not yet a production-complete plugin platform. See [the architecture blueprint](../docs/ARCHITECTURE.md) and [implementation blueprint](../docs/BLUEPRINT.md).
+## Migration planning
+
+`MigrationDescriptor::new` calculates a SHA-256 checksum from migration source
+bytes. `MigrationCatalog` rejects duplicate module-scoped identifiers or
+versions, validates the checksums of applied history records, and produces a
+deterministic pending plan.
+
+This crate does **not** execute SQL, open database transactions, acquire
+database locks, or write migration history. A database adapter must implement
+those operational guarantees before this can be described as a migration
+runner. Destructive rollback is never implied.
+
+## Current limitations
+
+- The lifecycle host is synchronous.
+- Module preparation and activation are not connected to a database transaction.
+- Migration support is planning and integrity metadata only, not execution.
+- Hooks and events are standalone registries; modules do not yet contribute to
+  them through a single frozen application builder.
+- There is no dynamic library loading, hot reload, tenant isolation, or
+  production security certification.
+- The kernel is experimental and its public API may change.
+
+The standalone ORM remains independent of this optional crate.
