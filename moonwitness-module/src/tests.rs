@@ -300,3 +300,36 @@ fn host_retains_modules_when_shutdown_fails_and_allows_retry() {
     host.stop().expect("retry shutdown");
     assert!(host.active_modules().is_empty());
 }
+
+
+#[test]
+fn host_retains_partially_activated_module_when_rollback_fails() {
+    let calls = Arc::new(Mutex::new(Vec::new()));
+    let mut failing = TestModule::new(manifest("mw.partial", "1.0.0"));
+    failing.calls = Arc::clone(&calls);
+    failing.fail_activation = true;
+    failing.fail_deactivation_once.store(true, Ordering::SeqCst);
+
+    let mut builder = ModuleRegistryBuilder::new();
+    builder.register(failing).expect("register partially failing module");
+    let registry = builder.build().expect("build registry");
+    let mut host = ModuleHost::new(registry, ModuleContext::default());
+
+    assert!(host.start().is_err());
+    assert_eq!(host.active_modules(), &["mw.partial".to_owned()]);
+
+    host.stop().expect("retry rollback cleanup");
+    assert!(host.active_modules().is_empty());
+    assert_eq!(
+        *calls.lock().expect("test mutex"),
+        vec![
+            "prepare:mw.partial",
+            "activate:mw.partial",
+            "deactivate:mw.partial",
+            "deactivate:mw.partial",
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect::<Vec<_>>()
+    );
+}
